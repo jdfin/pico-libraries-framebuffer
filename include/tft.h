@@ -13,7 +13,7 @@
 #include "framebuffer.h"
 #include "pixel_565.h"
 // misc
-#include "spi_x.h"
+#include "spi_extra.h"
 
 
 // It's not difficult to handle either 8-bit or 16-bit pixel transfers, but

@@ -20,8 +20,8 @@
 #include "tft.h"
 // misc
 #include "dbg_gpio.h"
-#include "dma_x.h"
-#include "spi_x.h"
+#include "dma_extra.h"
+#include "spi_extra.h"
 #include "util.h"
 
 
