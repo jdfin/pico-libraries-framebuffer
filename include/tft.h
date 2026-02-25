@@ -13,7 +13,7 @@
 #include "framebuffer.h"
 #include "pixel_565.h"
 // misc
-#include "spi_extra.h"
+#include "spi_x.h"
 
 
 // It's not difficult to handle either 8-bit or 16-bit pixel transfers, but
@@ -219,7 +219,7 @@ protected:
 
     inline void spi_write_command(uint8_t b0)
     {
-        assert(spi_get_bits(_spi) == 8);
+        assert(spix_get_data_bits(_spi) == 8);
         command();
         spi_get_hw(_spi)->dr = b0;
         spi_wait();
@@ -227,7 +227,7 @@ protected:
 
     inline void spi_write_data(uint8_t b0)
     {
-        assert(spi_get_bits(_spi) == 8);
+        assert(spix_get_data_bits(_spi) == 8);
         data();
         spi_get_hw(_spi)->dr = b0;
         spi_wait();
@@ -235,7 +235,7 @@ protected:
 
     inline void spi_write_data(uint16_t p0)
     {
-        assert(spi_get_bits(_spi) == 8);
+        assert(spix_get_data_bits(_spi) == 8);
         data();
         spi_get_hw(_spi)->dr = (uint32_t)(p0 >> 8);
         spi_get_hw(_spi)->dr = (uint32_t)p0;
@@ -244,7 +244,7 @@ protected:
 
     inline void spi_write_data(uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3)
     {
-        assert(spi_get_bits(_spi) == 8);
+        assert(spix_get_data_bits(_spi) == 8);
         data();
         spi_get_hw(_spi)->dr = (uint32_t)b0;
         spi_get_hw(_spi)->dr = (uint32_t)b1;
