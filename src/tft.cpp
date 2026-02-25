@@ -20,7 +20,7 @@
 #include "tft.h"
 // misc
 #include "dbg_gpio.h"
-#include "dma_irq_mux.h"
+#include "dmax.h"
 #include "spi_extra.h"
 #include "util.h"
 
@@ -91,8 +91,8 @@ Tft::Tft(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,
     channel_config_set_dreq(&_dma_cfg, spi_get_dreq(_spi, true));
     channel_config_set_transfer_data_size(&_dma_cfg, DMA_SIZE_16);
     channel_config_set_write_increment(&_dma_cfg, false); // write to spi
-    dma_irq_mux_connect(0, _dma_ch, dma_raw_handler, this);
-    dma_irq_mux_enable(0, _dma_ch, true);
+    dmax_connect(0, _dma_ch, dma_raw_handler, this);
+    dmax_enable(0, _dma_ch, true);
 }
 
 
@@ -321,7 +321,7 @@ void Tft::fill_rect(int hor, int ver, int wid, int hgt, const Color c)
 
     // force interrupt to start if it's there's not something already running
     if (!busy()) {
-        dma_irqn_mux_force(0, _dma_ch, true);
+        dmax_irqn_force(0, _dma_ch, true);
         busy(true);
     }
 
@@ -386,7 +386,7 @@ void Tft::write(int hor, int ver, const PixelImageHdr *image, HAlign align)
 
     // force interrupt to start if it's there's not something already running
     if (!busy()) {
-        dma_irqn_mux_force(0, _dma_ch, true);
+        dmax_irqn_force(0, _dma_ch, true);
         busy(true);
     }
 

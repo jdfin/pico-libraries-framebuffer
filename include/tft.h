@@ -154,14 +154,14 @@ protected:
 
     volatile uint16_t _dma_pixel; // isr/dma shared
 
-    // DMA interrupts: The mux in dma_irq_mux.c handles dma interrupts.
-    // Calling dma_irqn_mux_connect() connnects our handler to interrupts for
+    // DMA interrupts: The mux in dmax.c handles dma interrupts.
+    // Calling dmax_connect() connects our handler to interrupts for
     // our channel. When we connect to the mux, we provide a void* argument
-    // that is passed back to the handler on each interrupt. We this 'this'
+    // that is passed back to the handler on each interrupt. We use 'this'
     // so the static handler (dma_raw_handler) can call the instance method
     // (dma_handler).
 
-    // static handler called by dma_irq_mux.c
+    // static handler called by dmax.c
     static void dma_raw_handler(void *arg)
     {
         ((Tft *)arg)->dma_handler();
