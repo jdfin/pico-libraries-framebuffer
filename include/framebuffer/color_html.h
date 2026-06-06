@@ -1,6 +1,6 @@
 // #included from color.h
 
-#include "color.h" // make intellisense happy
+#include "framebuffer/color.h" // make intellisense happy
 
 // From https://www.w3schools.com/colors/colors_names.asp
 // "Color Names Supported by All Browsers"

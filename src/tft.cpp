@@ -11,18 +11,18 @@
 #include "hardware/sync.h"
 #include "pico/stdlib.h"
 // framebuffer
-#include "color.h"
-#include "font.h"
-#include "framebuffer.h"
-#include "pixel_565.h"
-#include "pixel_image.h"
+#include "framebuffer/color.h"
+#include "framebuffer/font.h"
+#include "framebuffer/framebuffer.h"
+#include "framebuffer/pixel_565.h"
+#include "framebuffer/pixel_image.h"
 //
-#include "tft.h"
+#include "framebuffer/tft.h"
 // misc
-#include "dbg_gpio.h"
-#include "dma_extra.h"
-#include "spi_extra.h"
-#include "util.h"
+#include "misc/dbg_gpio.h"
+#include "misc/dma_extra.h"
+#include "misc/spi_extra.h"
+#include "misc/util.h"
 
 
 Tft::Tft(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,

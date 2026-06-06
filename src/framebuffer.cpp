@@ -1,9 +1,9 @@
-#include "framebuffer.h"
+#include "framebuffer/framebuffer.h"
 
 #include <cassert>
 #include <cstdio>
 
-#include "color.h"
+#include "framebuffer/color.h"
 
 
 void Framebuffer::line(int h1, int v1, int h2, int v2, const Color c)

@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "color.h"
+#include "framebuffer/color.h"
 
 
 // An RGB pixel is sent to the display in two bytes: 5 bits red, 6 bits green,

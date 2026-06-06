@@ -6,12 +6,12 @@
 #include "hardware/spi.h"
 #include "pico/stdlib.h"
 // framebuffer
-#include "ili9341_cmd.h"
-#include "tft.h"
+#include "framebuffer/ili9341_cmd.h"
+#include "framebuffer/tft.h"
 //
-#include "util.h"
+#include "misc/util.h"
 //
-#include "ws24.h"
+#include "framebuffer/ws24.h"
 
 using namespace Ili9341Cmd;
 

@@ -7,10 +7,10 @@
 #include "hardware/spi.h"
 #include "pico/stdlib.h"
 // framebuffer
-#include "st7796_cmd.h"
-#include "tft.h"
+#include "framebuffer/st7796_cmd.h"
+#include "framebuffer/tft.h"
 //
-#include "hy35.h"
+#include "framebuffer/hy35.h"
 
 using namespace St7796Cmd;
 

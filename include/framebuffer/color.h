@@ -103,7 +103,7 @@ public:
     }
 
     // lots of html colors by name
-#include "color_html.h"
+#include "framebuffer/color_html.h"
 
     // constructor above uses rgb values 0-255
     // this one uses percentages 0-100

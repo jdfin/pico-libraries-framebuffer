@@ -8,12 +8,12 @@
 #include "hardware/spi.h"
 #include "pico/stdlib.h"
 // framebuffer
-#include "color.h"
-#include "font.h"
-#include "framebuffer.h"
-#include "pixel_565.h"
+#include "framebuffer/color.h"
+#include "framebuffer/font.h"
+#include "framebuffer/framebuffer.h"
+#include "framebuffer/pixel_565.h"
 // misc
-#include "spi_extra.h"
+#include "misc/spi_extra.h"
 
 
 // It's not difficult to handle either 8-bit or 16-bit pixel transfers, but

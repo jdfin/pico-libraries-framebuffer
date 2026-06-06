@@ -1,5 +1,5 @@
 
-#include "ws24.h"
+#include "framebuffer/ws24.h"
 
 #include <cassert>
 #include <cstdio>
@@ -10,16 +10,16 @@
 #include "pico/stdio_usb.h"
 #include "pico/stdlib.h"
 // misc
-#include "argv.h"
-#include "str_ops.h"
-#include "sys_led.h"
-#include "util.h"
+#include "misc/argv.h"
+#include "misc/str_ops.h"
+#include "misc/sys_led.h"
+#include "misc/util.h"
 // framebuffer
-#include "color.h"
-#include "font.h"
-#include "pixel_565.h"
-#include "pixel_image.h"
-#include "roboto.h"
+#include "framebuffer/color.h"
+#include "framebuffer/font.h"
+#include "framebuffer/pixel_565.h"
+#include "framebuffer/pixel_image.h"
+#include "framebuffer/roboto.h"
 //
 #include "ws24_test_cfg.h"
 

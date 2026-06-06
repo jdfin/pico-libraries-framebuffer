@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "font.h"
+#include "framebuffer/font.h"
 
 // Copyright 2011 The Roboto Project Authors (https://github.com/googlefonts/roboto-classic).
 // This Font Software is licensed under the SIL Open Font License, Version 1.1.

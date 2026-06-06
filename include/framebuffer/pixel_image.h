@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include "color.h"
-#include "font.h"
+#include "framebuffer/color.h"
+#include "framebuffer/font.h"
 
 // Compile-time image creation.
 

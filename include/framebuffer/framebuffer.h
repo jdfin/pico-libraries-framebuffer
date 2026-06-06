@@ -2,9 +2,9 @@
 
 #include <cassert>
 
-#include "color.h"
-#include "font.h"
-#include "pixel_image.h"
+#include "framebuffer/color.h"
+#include "framebuffer/font.h"
+#include "framebuffer/pixel_image.h"
 
 
 class Framebuffer
