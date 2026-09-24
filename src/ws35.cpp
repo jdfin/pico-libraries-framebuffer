@@ -71,11 +71,11 @@ uint8_t Ws35::madctl() const
     if (get_rotation() == Rotation::portrait) {
         return 0x48;
     } else if (get_rotation() == Rotation::landscape) {
-        return 0xe8;
+        return 0x28;
     } else if (get_rotation() == Rotation::portrait2) {
         return 0x88;
     } else {
         assert(get_rotation() == Rotation::landscape2);
-        return 0x28;
+        return 0xe8;
     }
 }

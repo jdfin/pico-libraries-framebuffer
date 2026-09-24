@@ -11,19 +11,23 @@ class Framebuffer
 {
 public:
 
+    // 'width' and 'height' are the panel's physical/silicon shape - for
+    // every panel this project drives, that's portrait (width <= height).
+    // Landscape use (the common case) is a rotation away: call
+    // set_rotation(Rotation::landscape) (or landscape2) after construction.
     Framebuffer(int width, int height) :
         _phys_wid(width),
         _phys_hgt(height),
         _width(width),
         _height(height),
         _brightness_pct(0),
-        _rotation(Rotation::landscape)
+        _rotation(Rotation::portrait)
     {
         // Initialization of width, height, and rotation assume we
-        // start out in landscape mode and _phys_wid >= _phys_hgt.
-        assert(_rotation == Rotation::landscape ||
-               _rotation == Rotation::landscape2);
-        assert(_phys_wid >= _phys_hgt);
+        // start out in portrait mode and _phys_wid <= _phys_hgt.
+        assert(_rotation == Rotation::portrait ||
+               _rotation == Rotation::portrait2);
+        assert(_phys_wid <= _phys_hgt);
     }
 
     virtual ~Framebuffer() = default;
@@ -76,17 +80,17 @@ public:
     {
         // subclass should do most of the work
         _rotation = r;
-        if (_rotation == Rotation::landscape ||
-            _rotation == Rotation::landscape2) {
+        if (_rotation == Rotation::portrait ||
+            _rotation == Rotation::portrait2) {
             _width = _phys_wid;
             _height = _phys_hgt;
-            assert(_width >= _height);
+            assert(_width <= _height);
         } else {
-            assert(_rotation == Rotation::portrait ||
-                   _rotation == Rotation::portrait2);
+            assert(_rotation == Rotation::landscape ||
+                   _rotation == Rotation::landscape2);
             _width = _phys_hgt;
             _height = _phys_wid;
-            assert(_width <= _height);
+            assert(_width >= _height);
         }
     }
 
