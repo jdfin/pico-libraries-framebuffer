@@ -1,5 +1,5 @@
 
-#include "framebuffer/ws35.h"
+#include "framebuffer/hy35.h"
 
 #include <cstdio>
 // pico
@@ -13,40 +13,38 @@
 #include "framebuffer/font.h"
 #include "framebuffer/roboto.h"
 
-// Pico 2 W test wiring
-//
 //                                   +----|USB|----+
 // UART0_TX I2C0_SDA SPI0_RX   GP0   | 1        40 |   VBUS
 // UART0_RX I2C0_SCL SPI0_CSn  GP1   | 2        39 |   VSYS
 //                             GND   | 3        38 |   GND
 //          I2C1_SDA SPI0_SCK  GP2   | 4        37 |   3V3_EN
 //          I2C1_SCL SPI0_TX   GP3   | 5        36 |   3V3(OUT)
-// UART1_TX I2C0_SDA SPI0_RX   GP4   | 6        35 |   ADC_VREF
-// UART1_RX I2C0_SCL SPI0_CSn  GP5   | 7        34 |   GP28 ADC2
+// UART1_TX I2C0_SDA SPI0_RX   GP4 * | 6        35 |   ADC_VREF
+// UART1_RX I2C0_SCL SPI0_CSn  GP5 * | 7        34 |   GP28 ADC2
 //                             GND   | 8        33 |   AGND
-//          I2C1_SDA SPI0_SCK  GP6   | 9        32 |   GP27 ADC1     I2C1_SCL
-//          I2C1_SCL SPI0_TX   GP7   | 10       31 |   GP26 ADC0     I2C1_SDA
-// UART1_TX I2C0_SDA SPI1_RX   GP8   | 11       30 |   RUN
-// UART1_RX I2C0_SCL SPI1_CSn  GP9   | 12       29 | * GP22
+//          I2C1_SDA SPI0_SCK  GP6 * | 9        32 |   GP27 ADC1     I2C1_SCL
+//          I2C1_SCL SPI0_TX   GP7 * | 10       31 |   GP26 ADC0     I2C1_SDA
+// UART1_TX I2C0_SDA SPI1_RX   GP8 * | 11       30 |   RUN
+// UART1_RX I2C0_SCL SPI1_CSn  GP9 * | 12       29 |   GP22
 //                             GND   | 13       28 |   GND
-//          I2C1_SDA SPI1_SCK GP10   | 14       27 | * GP21          I2C0_SCL UART1_RX
-//          I2C1_SCL SPI1_TX  GP11   | 15       26 | * GP20          I2C0_SDA UART1_TX
-// UART0_TX I2C0_SDA SPI1_RX  GP12   | 16       25 | * GP19 SPI0_TX  I2C1_SCL
-// UART0_RX I2C0_SCL SPI1_CSn GP13   | 17       24 | * GP18 SPI0_SCK I2C1_SDA
+//          I2C1_SDA SPI1_SCK GP10 * | 14       27 |   GP21          I2C0_SCL UART1_RX
+//          I2C1_SCL SPI1_TX  GP11   | 15       26 |   GP20          I2C0_SDA UART1_TX
+// UART0_TX I2C0_SDA SPI1_RX  GP12   | 16       25 |   GP19 SPI0_TX  I2C1_SCL
+// UART0_RX I2C0_SCL SPI1_CSn GP13   | 17       24 |   GP18 SPI0_SCK I2C1_SDA
 //                             GND   | 18       23 |   GND
-//          I2C1_SDA SPI1_SCK GP14   | 19       22 | * GP17 SPI0_CSn I2C0_SCL UART0_RX
-//          I2C1_SCL SPI1_TX  GP15   | 20       21 | * GP16 SPI0_RX  I2C0_SDA UART0_TX
+//          I2C1_SDA SPI1_SCK GP14   | 19       22 |   GP17 SPI0_CSn I2C0_SCL UART0_RX
+//          I2C1_SCL SPI1_TX  GP15   | 20       21 |   GP16 SPI0_RX  I2C0_SDA UART0_TX
 //                                   +-------------+
 
-constexpr int fb_spi_miso_gpio = 16;
-constexpr int fb_spi_mosi_gpio = 19;
-constexpr int fb_spi_clk_gpio = 18;
-constexpr int fb_spi_cs_gpio = 17;
-spi_inst_t* const fb_spi_inst = spi0;
+static constexpr int spi_miso_gpio = 4;
+static constexpr int spi_mosi_gpio = 7;
+static constexpr int spi_clk_gpio = 6;
+static constexpr int spi_cs_gpio = 5;
+static spi_inst_t* const spi_inst = spi0;
 
-constexpr int fb_cd_gpio = 20;
-constexpr int fb_rst_gpio = 21;
-constexpr int fb_led_gpio = 22;
+static constexpr int cd_gpio = 10;
+static constexpr int rst_gpio = 9;
+static constexpr int led_gpio = 8;
 
 static constexpr int spi_baud_request = 15'000'000;
 
@@ -81,15 +79,15 @@ int main()
     SysLed::off();
 
     printf("\n");
-    printf("ws35_test\n");
+    printf("hy35_test\n");
     printf("\n");
 
     // Framebuffer's constructor takes the panel's physical (portrait) shape;
     // fb_width/fb_height above are the landscape logical size used by
     // fb_tests.h's layout math, so they're swapped here.
-    Ws35 fb(fb_spi_inst, fb_spi_miso_gpio, fb_spi_mosi_gpio, fb_spi_clk_gpio,
-            fb_spi_cs_gpio, spi_baud_request, fb_cd_gpio, fb_rst_gpio,
-            fb_led_gpio, fb_height, fb_width, work, work_bytes);
+    Hy35 fb(spi_inst, spi_miso_gpio, spi_mosi_gpio, spi_clk_gpio,
+            spi_cs_gpio, spi_baud_request, cd_gpio, rst_gpio,
+            led_gpio, fb_height, fb_width, work, work_bytes);
 
     int spi_baud_actual = fb.spi_freq();
     int spi_rate_max = spi_baud_actual / 8;

@@ -1,5 +1,5 @@
 
-#include "framebuffer/ws24.h"
+#include "framebuffer/nhd_bsxv_f.h"
 
 #include <cstdio>
 // pico
@@ -13,10 +13,14 @@
 #include "framebuffer/font.h"
 #include "framebuffer/roboto.h"
 //
-#include "ws24_test_cfg.h"
+#include "nhd_bsxv_f_test_cfg.h"
 
-static constexpr int spi_baud_request = 10'000'000;
+static constexpr int spi_baud_request = 15'000'000;
 
+// NhdBsxvF's physical size (240x320 portrait) is fixed at compile time, not
+// a constructor argument; fb_width/fb_height here are just the landscape
+// logical size used by fb_tests.h's layout math. Same physical size as
+// Ws24, so the same font picks apply.
 static constexpr int fb_width = 320;
 static constexpr int fb_height = 240;
 static const Font &font = roboto_24;           // height/10
@@ -48,15 +52,12 @@ int main()
     SysLed::off();
 
     printf("\n");
-    printf("ws24_test\n");
+    printf("nhd_bsxv_f_test\n");
     printf("\n");
 
-    // Framebuffer's constructor takes the panel's physical (portrait) shape;
-    // fb_width/fb_height above are the landscape logical size used by
-    // fb_tests.h's layout math, so they're swapped here.
-    Ws24 fb(fb_spi_inst, fb_spi_miso_gpio, fb_spi_mosi_gpio, fb_spi_clk_gpio,
-            fb_spi_cs_gpio, spi_baud_request, fb_cd_gpio, fb_rst_gpio,
-            fb_led_gpio, fb_height, fb_width, work, work_bytes);
+    NhdBsxvF fb(fb_spi_inst, fb_spi_miso_gpio, fb_spi_mosi_gpio, fb_spi_clk_gpio,
+                fb_spi_cs_gpio, spi_baud_request, fb_cd_gpio, fb_rst_gpio,
+                fb_led_gpio, work, work_bytes);
 
     int spi_baud_actual = fb.spi_freq();
     int spi_rate_max = spi_baud_actual / 8;
