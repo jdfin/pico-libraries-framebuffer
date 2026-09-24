@@ -60,7 +60,7 @@ Tft::Tft(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,
     gpio_set_function(_miso_pin, GPIO_FUNC_SPI);
     gpio_set_function(_mosi_pin, GPIO_FUNC_SPI);
     gpio_set_function(_clk_pin, GPIO_FUNC_SPI);
-    spi_set_format(_spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    spi_set_format(_spi, 8, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
 
     if (_cs_pin >= 0) {
         gpio_init(_cs_pin);
@@ -105,7 +105,7 @@ Tft::~Tft()
 void Tft::write_cmds(const uint16_t *b, int b_len)
 {
     assert(b != nullptr && b_len >= 1);
-    spi_set_format(_spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    spi_set_format(_spi, 8, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
     while (b_len > 0) {
         uint16_t next = *b++;
         if ((next & wr_mask) == wr_cmd) {
@@ -156,7 +156,7 @@ void Tft::set_rotation(Rotation r)
 
     wait_idle(); // wait for any queued dmas to finish
 
-    spi_set_format(_spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    spi_set_format(_spi, 8, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
     spi_write_command(MADCTL);
     spi_write_data(madctl());
 }
@@ -166,7 +166,7 @@ void Tft::set_window(uint16_t hor, uint16_t ver, uint16_t wid, uint16_t hgt)
 {
     //DbgGpio d(28);
 
-    spi_set_format(_spi, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    spi_set_format(_spi, 8, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
 
     spi_write_command(CASET);
 
@@ -253,7 +253,7 @@ void Tft::dma_handler()
             set_window(hor, ver, wid, hgt); // sets to 8-bit spi
             spi_write_command(RAMWR);
             data();
-            spi_set_format(_spi, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+            spi_set_format(_spi, 16, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
             channel_config_set_read_increment(&_dma_cfg, false);
             dma_channel_configure(_dma_ch, &_dma_cfg, &spi_get_hw(_spi)->dr,
                                   &_dma_pixel, wid * hgt, true); // go!
@@ -266,7 +266,7 @@ void Tft::dma_handler()
             set_window(hor, ver, wid, hgt); // sets to 8-bit spi
             spi_write_command(RAMWR);
             data();
-            spi_set_format(_spi, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+            spi_set_format(_spi, 16, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
             channel_config_set_read_increment(&_dma_cfg, true);
             dma_channel_configure(_dma_ch, &_dma_cfg, &spi_get_hw(_spi)->dr,
                                   pixels, wid * hgt, true); // go!
@@ -544,7 +544,7 @@ void Tft::print(int hor, int ver, char c, const Font &font, //
 
     // Assigning to _pix_buf[] from Color uses Pixel565::operator=.
 
-    spi_set_format(_spi, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+    spi_set_format(_spi, 16, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
 
     Pixel565 bg_pix = bg; // convert once
 

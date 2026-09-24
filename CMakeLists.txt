@@ -6,6 +6,10 @@ target_sources(framebuffer INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/src/ws24.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/ws35.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/hy35.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/nhd_bsxv_f.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/nhd_af_ctxp.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/nhd_af_csxp.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/fd24.cpp
 )
 
 target_include_directories(framebuffer INTERFACE 

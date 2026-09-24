@@ -173,6 +173,17 @@ protected:
     // Calculate MADCTL value for current rotation.
     virtual uint8_t madctl() const = 0;
 
+    // SPI mode. Every panel so far uses mode 0 (the default below);
+    // override if a panel needs a different one (e.g. mode 3).
+    virtual spi_cpol_t spi_cpol() const
+    {
+        return SPI_CPOL_0;
+    }
+    virtual spi_cpha_t spi_cpha() const
+    {
+        return SPI_CPHA_0;
+    }
+
     // Working buffer used to render character. Any size is okay, but bigger
     // means fewer transfers. Supplied to constructor.
     static_assert(sizeof(Pixel565) == sizeof(uint16_t));
