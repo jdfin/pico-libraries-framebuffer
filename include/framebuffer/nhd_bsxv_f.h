@@ -13,8 +13,10 @@
 // 320 rows) silicon, so unlike Ws35/Hy35/Ws24, width/height are fixed at
 // compile time rather than taken as constructor arguments.
 //
-// Electrically and physically identical to NhdAfCtxp/NhdAfCsxp except for
-// one MADCTL bit (RGB vs BGR color order) - see madctl().
+// Confirmed against real hardware: needs SPI mode 3, and madctl() (see
+// tft.h) does not set the RGB/BGR bit -- setting it swaps red and blue on
+// this part. NhdAfCtxp/NhdAfCsxp are still on unverified, untested values;
+// don't assume they need the same fixes.
 class NhdBsxvF : public Tft
 {
 
@@ -37,4 +39,16 @@ private:
     static constexpr int raw_rows = 320; // native row count
 
     virtual uint8_t madctl() const;
+
+    // SPI mode 3 (CPOL=1, CPHA=1)
+
+    virtual spi_cpol_t spi_cpol() const
+    {
+        return SPI_CPOL_1;
+    }
+
+    virtual spi_cpha_t spi_cpha() const
+    {
+        return SPI_CPHA_1;
+    }
 };

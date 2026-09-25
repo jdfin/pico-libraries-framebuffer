@@ -171,6 +171,19 @@ protected:
     void dma_handler();
 
     // Calculate MADCTL value for current rotation.
+    // The value is specific to how the chip is wired to the panel.
+    // Our convention is that portrait mode has the cable at the bottom, and
+    // landscape mode has the cable on the right. portrait2 and landscape2
+    // are the flipped versions of those.
+    // If T, B are physical top and bottom, and L, R are physical left and
+    // right, then the bits work like this:
+    //   80 MY  row address order (0=T->B, 1=B->T)
+    //   40 MX  column address order (0=L->R, 1=R->L)
+    //   20 MV  row/column exchange (0=Inc X, 1=Inc Y)
+    // Rest of the bits are constants for a particular panel.
+    //   10 ML  vertical refresh order (always 0)
+    //   08 RGB RGB-BGR order (might be 0 or 1)
+    //   04 MH  horizontal refresh order (always 0)
     virtual uint8_t madctl() const = 0;
 
     // SPI mode. Every panel so far uses mode 0 (the default below);

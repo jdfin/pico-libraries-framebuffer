@@ -26,13 +26,10 @@ using namespace St7789Cmd;
 // safer than an edit that can't be verified.
 void Fd24::init()
 {
-    hw_reset(2000);
+    // at least 10 usec required
+    hw_reset(100);
 
-    // MIPI/ST7789-family convention requires >=120ms between reset release
-    // and SLPOUT specifically; our SLPOUT isn't sent until after the block
-    // of register writes below, but that only takes a fraction of a
-    // millisecond over SPI, so this delay dominates either way. Matches
-    // the known-working Arduino reference for this display (arduino/fd24/).
+    // 120 msec required if it happens to be in sleep_out mode
     sleep_ms(120);
 
     const uint16_t cmds[] = {
@@ -81,29 +78,18 @@ void Fd24::init()
 }
 
 
-// MADCTL: top three bits control orientation and y/row direction
-//   80 MY  row address order
-//   40 MX  column address order
-//   20 MV  row/column exchange
-//   10 ML  vertical refresh order (always 0)
-//   08 RGB RGB-BGR order (always 0 -- this panel is BGR)
-//   04 MH  horizontal refresh order (always 0)
-//
-// Only the Rotation::portrait value here (0x00, matching the vendor
-// sample's own default) is confirmed; the other three rotations use the
-// standard MX/MV/MY combinations and have NOT been verified against real
-// hardware -- if a non-default rotation comes out mirrored or flipped,
-// adjust the bits below.
+// MADCTL: see tft.h, madctl()
 uint8_t Fd24::madctl() const
 {
+    // RGB bit is always 0
     if (get_rotation() == Rotation::portrait) {
-        return 0x00; // no bits -- confirmed by the vendor sample
+        return 0x00;
     } else if (get_rotation() == Rotation::landscape) {
-        return 0x60; // MX | MV -- derived, unverified
+        return 0x60;
     } else if (get_rotation() == Rotation::portrait2) {
-        return 0xc0; // MY | MX -- derived, unverified
+        return 0xc0;
     } else {
         assert(get_rotation() == Rotation::landscape2);
-        return 0xa0; // MY | MV -- derived, unverified
+        return 0xa0;
     }
 }

@@ -37,14 +37,13 @@ private:
 
     virtual uint8_t madctl() const;
 
-    // This panel needs SPI mode 3 (CPOL=1, CPHA=1), confirmed against a
-    // known-working Arduino driver for this same display (arduino/fd24/),
-    // which hardcodes SPI_MODE3. Tft defaults to mode 0, which is what
-    // Ws35/Hy35/Ws24/the Newhaven boards use.
+    // SPI mode 3 (CPOL=1, CPHA=1)
+
     virtual spi_cpol_t spi_cpol() const
     {
         return SPI_CPOL_1;
     }
+
     virtual spi_cpha_t spi_cpha() const
     {
         return SPI_CPHA_1;

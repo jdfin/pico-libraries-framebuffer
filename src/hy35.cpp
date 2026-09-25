@@ -26,13 +26,11 @@ Hy35::Hy35(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin, int cs_pin,
 
 void Hy35::init()
 {
-    hw_reset(2000);
+    // at least 10 usec required
+    hw_reset(100);
 
-    // after hw_reset:
-    //   no sleep does not work
-    //   sleeping 1 msec works
-    //   sample code sleeps 200 msec
-    sleep_ms(10);
+    // 120 msec required if it happens to be in sleep_out mode
+    sleep_ms(120);
 
     const uint16_t cmds[] = {
         // clang-format off
@@ -69,15 +67,10 @@ void Hy35::init()
 }
 
 
-// MADCTL: top three bits control orientation and y/row direction
-//   80 MY  row address order
-//   40 MX  column address order
-//   20 MV  row/column exchange
-//   10 ML  vertical refresh order (always 0)
-//   08 RGB RGB-BGR order (always 1)
-//   04 MH  horizontal refresh order (always 0)
+// MADCTL: see tft.h, madctl()
 uint8_t Hy35::madctl() const
 {
+    // RGB bit is always 1
     if (get_rotation() == Rotation::portrait) {
         return 0x48;
     } else if (get_rotation() == Rotation::landscape) {

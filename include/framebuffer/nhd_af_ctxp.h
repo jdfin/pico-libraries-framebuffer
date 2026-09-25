@@ -13,8 +13,12 @@
 // 320 rows) silicon, so unlike Ws35/Hy35/Ws24, width/height are fixed at
 // compile time rather than taken as constructor arguments.
 //
-// Electrically and physically identical to NhdBsxvF/NhdAfCsxp except for
-// one MADCTL bit (RGB vs BGR color order) - see madctl().
+// Electrically and physically similar to NhdBsxvF/NhdAfCsxp; assumed (but
+// NOT yet confirmed against real hardware, unlike NhdBsxvF - see the
+// comment there) to need only Newhaven's Cxxx-sample MADCTL values below,
+// with no RGB/BGR bit and no SPI mode 3. If this part turns out to need
+// the same fixes NhdBsxvF needed, update madctl()/spi_cpol()/spi_cpha()
+// here to match.
 class NhdAfCtxp : public Tft
 {
 

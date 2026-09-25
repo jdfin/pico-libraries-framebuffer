@@ -21,12 +21,11 @@ using namespace St7789Cmd;
 // sequence applies here over SPI.
 void NhdBsxvF::init()
 {
-    hw_reset(2000);
+    // at least 10 usec required
+    hw_reset(100);
 
-    // Newhaven's sample sleeps 250ms both before and after toggling reset;
-    // Ws35/Hy35 (same family of controller) get away with 10ms, so we use
-    // that here too rather than the more conservative Arduino delay.
-    sleep_ms(10);
+    // 120 msec required if it happens to be in sleep_out mode
+    sleep_ms(120);
 
     const uint16_t cmds[] = {
         // clang-format off
@@ -74,36 +73,18 @@ void NhdBsxvF::init()
 }
 
 
-// MADCTL: top three bits control orientation and y/row direction
-//   80 MY  row address order
-//   40 MX  column address order
-//   20 MV  row/column exchange
-//   10 ML  vertical refresh order (always 0)
-//   08 RGB RGB-BGR order (this part: RGB, so the bit is set)
-//   04 MH  horizontal refresh order (always 0)
-//
-// Only the Rotation::portrait value here (MY set, RGB bit set) is confirmed:
-// it's exactly what Newhaven's own NHD-2.4-240320CF-BSXV.ino sample uses
-// (0x88), and it matches this panel's native raw 240 (cols) x 320 (rows)
-// addressing with no row/column exchange.
-//
-// The other three rotations are derived using the standard ST7789 MADCTL
-// rotation combinations (the same ones e.g. Adafruit's ST7789 driver uses
-// for portrait-native glass), with this panel's RGB bit substituted in. They
-// have NOT been verified against real hardware - if a non-default rotation
-// comes out mirrored or flipped, adjust the MY/MX/MV bits below.
+// MADCTL: see tft.h, madctl()
 uint8_t NhdBsxvF::madctl() const
 {
-    uint8_t v;
+    // RGB bit is always 0
     if (get_rotation() == Rotation::portrait) {
-        v = 0x80; // MY -- confirmed by Newhaven's sample init code
+        return 0x00;
     } else if (get_rotation() == Rotation::landscape) {
-        v = 0x60; // MX | MV -- derived, unverified
+        return 0x60;
     } else if (get_rotation() == Rotation::portrait2) {
-        v = 0xc0; // MY | MX -- derived, unverified
+        return 0xc0;
     } else {
         assert(get_rotation() == Rotation::landscape2);
-        v = 0xa0; // MY | MV -- derived, unverified
+        return 0xa0;
     }
-    return v | 0x08; // RGB order bit
 }
