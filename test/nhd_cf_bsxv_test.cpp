@@ -12,7 +12,7 @@
 // framebuffer
 #include "framebuffer/font.h"
 #include "framebuffer/roboto.h"
-#include "framebuffer/tft_spi_if.h"
+#include "framebuffer/tft_spi4_if.h"
 
 //                                   +----|USB|----+
 // UART0_TX I2C0_SDA SPI0_RX   GP0   | 1        40 |   VBUS
@@ -88,9 +88,9 @@ int main()
     printf("\n");
 
     // NhdCfBsxv needs SPI mode 3 (confirmed against real hardware).
-    TftSpiIf io(spi_inst, spi_miso_gpio, spi_mosi_gpio, spi_clk_gpio,
-                spi_cs_gpio, spi_baud_request, cd_gpio, //
-                SPI_CPOL_1, SPI_CPHA_1);
+    TftSpi4If io(spi_inst, spi_miso_gpio, spi_mosi_gpio, spi_clk_gpio,
+                 spi_cs_gpio, spi_baud_request, cd_gpio, //
+                 SPI_CPOL_1, SPI_CPHA_1);
 
     NhdCfBsxv fb(io, rst_gpio, led_gpio, work, work_bytes);
 

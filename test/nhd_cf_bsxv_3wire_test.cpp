@@ -97,7 +97,7 @@ int main()
     printf("\n");
 
     // spi3.pio runs in mode 0 (clock idles low) - no cpol/cpha to pass here,
-    // unlike TftSpiIf. NhdCfBsxv needs mode 3 over 4-wire SPI (see
+    // unlike TftSpi4If. NhdCfBsxv needs mode 3 over 4-wire SPI (see
     // nhd_cf_bsxv_test), but works fine over this 3-wire transport as-is.
     TftSpi3If io(spi3_pio, spi3_dat_gpio, spi3_clk_gpio, spi3_cs_gpio,
                 spi3_baud_request);

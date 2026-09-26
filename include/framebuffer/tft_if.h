@@ -5,7 +5,7 @@
 
 // Abstract panel I/O for Tft: everything Tft needs to talk to a controller
 // chip over some serial link, independent of which link that actually is.
-// TftSpiIf implements this over the Pico SDK's hardware SPI (4-wire, a
+// TftSpi4If implements this over the Pico SDK's hardware SPI (4-wire, a
 // separate D/C GPIO); TftSpi3If implements it over spi3.pio (3-wire, D/C
 // sent in-band as a 9th bit per byte). Tft itself owns the DMA channel, its
 // interrupt handler, and the async fill/copy queue (_ops[]) - none of that
@@ -24,7 +24,7 @@ public:
     virtual int freq() const = 0;
 
     // Synchronous single-byte writes. D/C framing - however this transport
-    // signals it (a GPIO for TftSpiIf, an in-band bit for TftSpi3If) - is
+    // signals it (a GPIO for TftSpi4If, an in-band bit for TftSpi3If) - is
     // the implementation's problem, not the caller's.
     virtual void write_cmd(uint8_t byte) = 0;
     virtual void write_data(uint8_t byte) = 0;

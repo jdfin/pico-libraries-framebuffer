@@ -13,10 +13,11 @@
 // validated (single-byte synchronous commands, multi-byte synchronous
 // parameters, 16-bit pixel bursts via DMA with autopull).
 //
-// SPI mode is fixed to mode 3 (CPOL=1, CPHA=1) inside spi3.pio itself --
-// confirmed needed by NhdCfBsxv, same Newhaven/ST7789Vi family as the
-// af_csxp/af_ctxp boards this transport exists for. There's no runtime
-// mode selection the way TftSpiIf has one; a future 3-wire panel needing
+// SPI mode is fixed inside spi3.pio itself (runs mode 0, clock idles low -
+// confirmed on real hardware even for NhdCfBsxv/NhdAfCxxx, which need mode
+// 3 over 4-wire SPI; CS is managed explicitly per-transaction here to make
+// up the difference, since spi3.pio doesn't drive it). There's no runtime
+// mode selection the way TftSpi4If has one; a future 3-wire panel needing
 // a different mode would need a new PIO program, not a constructor
 // parameter here.
 class TftSpi3If : public TftIf
@@ -24,8 +25,9 @@ class TftSpi3If : public TftIf
 
 public:
 
-    // baud: requested; actual may be different - see freq(). cs_pin may
-    // be -1 if the panel's CS is hardwired rather than GPIO-controlled.
+    // baud: requested; actual may be different - see freq(). cs_pin is
+    // required (asserted) - spi3.pio doesn't drive CS itself, so this
+    // class must, and does so per-transaction (see the .cpp).
     TftSpi3If(PIO pio, int sda_pin, int clk_pin, int cs_pin, float baud);
 
     virtual int freq() const override

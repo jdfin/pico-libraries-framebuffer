@@ -15,8 +15,8 @@
 // are fixed at compile time rather than taken as constructor arguments.
 //
 // Needs SPI mode 3 (CPOL=1, CPHA=1) - the caller is responsible for
-// constructing its TftSpiIf with SPI_CPOL_1/SPI_CPHA_1; that's no longer
-// this class's concern now that mode selection lives on TftSpiIf, not Tft.
+// constructing its TftSpi4If with SPI_CPOL_1/SPI_CPHA_1; that's no longer
+// this class's concern now that mode selection lives on TftSpi4If, not Tft.
 class Fd24 : public Tft
 {
 

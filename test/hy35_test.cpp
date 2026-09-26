@@ -12,7 +12,7 @@
 // framebuffer
 #include "framebuffer/font.h"
 #include "framebuffer/roboto.h"
-#include "framebuffer/tft_spi_if.h"
+#include "framebuffer/tft_spi4_if.h"
 
 //                                   +----|USB|----+
 // UART0_TX I2C0_SDA SPI0_RX   GP0   | 1        40 |   VBUS
@@ -83,8 +83,8 @@ int main()
     printf("hy35_test\n");
     printf("\n");
 
-    TftSpiIf io(spi_inst, spi_miso_gpio, spi_mosi_gpio, spi_clk_gpio,
-                spi_cs_gpio, spi_baud_request, cd_gpio);
+    TftSpi4If io(spi_inst, spi_miso_gpio, spi_mosi_gpio, spi_clk_gpio,
+                 spi_cs_gpio, spi_baud_request, cd_gpio);
 
     // Framebuffer's constructor takes the panel's physical (portrait) shape;
     // fb_width/fb_height above are the landscape logical size used by

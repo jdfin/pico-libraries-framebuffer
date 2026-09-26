@@ -3,7 +3,7 @@ add_library(framebuffer INTERFACE)
 target_sources(framebuffer INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/src/framebuffer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/tft.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/tft_spi_if.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/tft_spi4_if.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/tft_spi3_if.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/ws24.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/ws35.cpp

@@ -11,7 +11,7 @@
 // TftIf implementation over the Pico SDK's hardware SPI (4-wire: separate
 // MISO/MOSI/CLK/CS, plus a D/C GPIO). This is exactly what Tft did directly
 // before TftIf existed - extracted verbatim, no behavior change.
-class TftSpiIf : public TftIf
+class TftSpi4If : public TftIf
 {
 
 public:
@@ -19,9 +19,9 @@ public:
     // baud: requested; actual may be different - see freq().
     // cpol/cpha: every panel driven over hardware SPI so far uses mode 0
     // (the defaults); Fd24 needs mode 3.
-    TftSpiIf(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,
-             int cs_pin, int baud, int cd_pin, //
-             spi_cpol_t cpol = SPI_CPOL_0, spi_cpha_t cpha = SPI_CPHA_0);
+    TftSpi4If(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,
+              int cs_pin, int baud, int cd_pin, //
+              spi_cpol_t cpol = SPI_CPOL_0, spi_cpha_t cpha = SPI_CPHA_0);
 
     virtual int freq() const override
     {

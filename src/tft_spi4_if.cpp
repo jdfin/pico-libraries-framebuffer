@@ -1,5 +1,5 @@
 
-#include "framebuffer/tft_spi_if.h"
+#include "framebuffer/tft_spi4_if.h"
 
 #include <cassert>
 // pico
@@ -7,9 +7,9 @@
 #include "pico/stdlib.h"
 
 
-TftSpiIf::TftSpiIf(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,
-                    int cs_pin, int baud, int cd_pin, //
-                    spi_cpol_t cpol, spi_cpha_t cpha) :
+TftSpi4If::TftSpi4If(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,
+                      int cs_pin, int baud, int cd_pin, //
+                      spi_cpol_t cpol, spi_cpha_t cpha) :
     _spi(spi),
     _freq(0),
     _miso_pin(miso_pin),
@@ -42,7 +42,7 @@ TftSpiIf::TftSpiIf(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,
 }
 
 
-void TftSpiIf::write_cmd(uint8_t byte)
+void TftSpi4If::write_cmd(uint8_t byte)
 {
     spi_set_format(_spi, 8, _cpol, _cpha, SPI_MSB_FIRST);
     command();
@@ -51,7 +51,7 @@ void TftSpiIf::write_cmd(uint8_t byte)
 }
 
 
-void TftSpiIf::write_data(uint8_t byte)
+void TftSpi4If::write_data(uint8_t byte)
 {
     spi_set_format(_spi, 8, _cpol, _cpha, SPI_MSB_FIRST);
     data();
@@ -60,7 +60,7 @@ void TftSpiIf::write_data(uint8_t byte)
 }
 
 
-void TftSpiIf::write_data16(uint16_t value)
+void TftSpi4If::write_data16(uint16_t value)
 {
     // Matches Tft's original spi_write_data(uint16_t): two 8-bit writes,
     // not a transient switch to 16-bit format - not worth it for a single
@@ -73,7 +73,7 @@ void TftSpiIf::write_data16(uint16_t value)
 }
 
 
-void TftSpiIf::write_data16_blocking(const uint16_t *buf, int count)
+void TftSpi4If::write_data16_blocking(const uint16_t *buf, int count)
 {
     data();
     spi_set_format(_spi, 16, _cpol, _cpha, SPI_MSB_FIRST);
@@ -81,7 +81,7 @@ void TftSpiIf::write_data16_blocking(const uint16_t *buf, int count)
 }
 
 
-void TftSpiIf::begin_data16_burst()
+void TftSpi4If::begin_data16_burst()
 {
     data();
     spi_set_format(_spi, 16, _cpol, _cpha, SPI_MSB_FIRST);

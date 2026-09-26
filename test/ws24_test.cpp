@@ -12,7 +12,7 @@
 // framebuffer
 #include "framebuffer/font.h"
 #include "framebuffer/roboto.h"
-#include "framebuffer/tft_spi_if.h"
+#include "framebuffer/tft_spi4_if.h"
 //
 #include "ws24_test_cfg.h"
 
@@ -52,8 +52,8 @@ int main()
     printf("ws24_test\n");
     printf("\n");
 
-    TftSpiIf io(fb_spi_inst, fb_spi_miso_gpio, fb_spi_mosi_gpio, fb_spi_clk_gpio,
-                fb_spi_cs_gpio, spi_baud_request, fb_cd_gpio);
+    TftSpi4If io(fb_spi_inst, fb_spi_miso_gpio, fb_spi_mosi_gpio, fb_spi_clk_gpio,
+                 fb_spi_cs_gpio, spi_baud_request, fb_cd_gpio);
 
     // Framebuffer's constructor takes the panel's physical (portrait) shape;
     // fb_width/fb_height above are the landscape logical size used by

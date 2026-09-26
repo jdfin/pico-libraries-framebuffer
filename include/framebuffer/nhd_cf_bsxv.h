@@ -17,8 +17,8 @@
 // selection), and madctl() (see tft.h) does not set the RGB/BGR bit --
 // setting it swaps red and blue on this part.
 //
-// SPI mode selection now lives on TftSpiIf, not here - the caller is
-// responsible for constructing its TftSpiIf with SPI_CPOL_1/SPI_CPHA_1.
+// SPI mode selection now lives on TftSpi4If, not here - the caller is
+// responsible for constructing its TftSpi4If with SPI_CPOL_1/SPI_CPHA_1.
 class NhdCfBsxv : public Tft
 {
 
