@@ -8,7 +8,7 @@ add_executable(spi3_test
     spi3_test.cpp
 )
 
-pico_generate_pio_header(spi3_test ${CMAKE_CURRENT_LIST_DIR}/spi3.pio)
+pico_generate_pio_header(spi3_test ${CMAKE_CURRENT_LIST_DIR}/../src/spi3.pio)
 
 pico_enable_stdio_uart(spi3_test 0)
 pico_enable_stdio_usb(spi3_test 1)
@@ -105,6 +105,26 @@ target_link_libraries(nhd_bsxv_f_test PRIVATE
 )
 
 pico_add_extra_outputs(nhd_bsxv_f_test)
+
+
+# nhd_bsxv_f_3wire_test
+
+add_executable(nhd_bsxv_f_3wire_test
+    nhd_bsxv_f_3wire_test.cpp
+)
+
+pico_enable_stdio_uart(nhd_bsxv_f_3wire_test 0)
+pico_enable_stdio_usb(nhd_bsxv_f_3wire_test 1)
+
+target_link_libraries(nhd_bsxv_f_3wire_test PRIVATE
+    pico_rand
+    pico_stdlib
+    pico_stdio_usb
+    framebuffer
+    misc
+)
+
+pico_add_extra_outputs(nhd_bsxv_f_3wire_test)
 
 
 # nhd_af_ctxp_test
