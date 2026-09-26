@@ -14,7 +14,7 @@
 // parameters, 16-bit pixel bursts via DMA with autopull).
 //
 // SPI mode is fixed to mode 3 (CPOL=1, CPHA=1) inside spi3.pio itself --
-// confirmed needed by NhdBsxvF, same Newhaven/ST7789Vi family as the
+// confirmed needed by NhdCfBsxv, same Newhaven/ST7789Vi family as the
 // af_csxp/af_ctxp boards this transport exists for. There's no runtime
 // mode selection the way TftSpiIf has one; a future 3-wire panel needing
 // a different mode would need a new PIO program, not a constructor

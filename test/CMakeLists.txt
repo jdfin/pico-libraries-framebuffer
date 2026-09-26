@@ -86,16 +86,16 @@ target_link_libraries(ws24_test PRIVATE
 pico_add_extra_outputs(ws24_test)
 
 
-# nhd_bsxv_f_test
+# nhd_cf_bsxv_test
 
-add_executable(nhd_bsxv_f_test
-    nhd_bsxv_f_test.cpp
+add_executable(nhd_cf_bsxv_test
+    nhd_cf_bsxv_test.cpp
 )
 
-pico_enable_stdio_uart(nhd_bsxv_f_test 0)
-pico_enable_stdio_usb(nhd_bsxv_f_test 1)
+pico_enable_stdio_uart(nhd_cf_bsxv_test 0)
+pico_enable_stdio_usb(nhd_cf_bsxv_test 1)
 
-target_link_libraries(nhd_bsxv_f_test PRIVATE
+target_link_libraries(nhd_cf_bsxv_test PRIVATE
     pico_rand
     pico_stdlib
     pico_stdio_usb
@@ -104,19 +104,19 @@ target_link_libraries(nhd_bsxv_f_test PRIVATE
     misc
 )
 
-pico_add_extra_outputs(nhd_bsxv_f_test)
+pico_add_extra_outputs(nhd_cf_bsxv_test)
 
 
-# nhd_bsxv_f_3wire_test
+# nhd_cf_bsxv_3wire_test
 
-add_executable(nhd_bsxv_f_3wire_test
-    nhd_bsxv_f_3wire_test.cpp
+add_executable(nhd_cf_bsxv_3wire_test
+    nhd_cf_bsxv_3wire_test.cpp
 )
 
-pico_enable_stdio_uart(nhd_bsxv_f_3wire_test 0)
-pico_enable_stdio_usb(nhd_bsxv_f_3wire_test 1)
+pico_enable_stdio_uart(nhd_cf_bsxv_3wire_test 0)
+pico_enable_stdio_usb(nhd_cf_bsxv_3wire_test 1)
 
-target_link_libraries(nhd_bsxv_f_3wire_test PRIVATE
+target_link_libraries(nhd_cf_bsxv_3wire_test PRIVATE
     pico_rand
     pico_stdlib
     pico_stdio_usb
@@ -124,7 +124,7 @@ target_link_libraries(nhd_bsxv_f_3wire_test PRIVATE
     misc
 )
 
-pico_add_extra_outputs(nhd_bsxv_f_3wire_test)
+pico_add_extra_outputs(nhd_cf_bsxv_3wire_test)
 
 
 # nhd_af_cxxx_test (covers both AF-CTXP and AF-CSXP - identical code)

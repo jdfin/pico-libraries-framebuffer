@@ -5,7 +5,7 @@
 // Command opcodes for the Sitronix ST7789V / ST7789Vi controllers: ST7789V
 // on the 4D Systems 4DLCD-24320240-IPS (older, ST7789V batch -- see
 // Fd24::init()), ST7789Vi on the Newhaven NHD-2.4-240320-* family (see
-// NhdBsxvF/NhdAfCxxx::init()).
+// NhdCfBsxv/NhdAfCxxx::init()).
 //
 // Per Sitronix's own datasheets (docs/ST7789V.pdf, docs/ST7789VI.pdf),
 // ST7789Vi's command set is a strict superset of ST7789V's: every register
@@ -25,7 +25,7 @@
 // (e.g. 0xb7 is GCTRL here, but EM on ST7796) -- so it is not safe to reuse
 // St7796Cmd for either of these drivers.
 //
-// Only the opcodes actually used by Fd24::init() and NhdBsxvF/NhdAfCxxx::
+// Only the opcodes actually used by Fd24::init() and NhdCfBsxv/NhdAfCxxx::
 // init() (taken from 4D Systems' and Newhaven's own sample init code,
 // respectively) are listed here. RAMCTRL/RGBCTRL names are this
 // project's best-effort label based on common ST7789-family documentation

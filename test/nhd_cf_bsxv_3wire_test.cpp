@@ -1,9 +1,9 @@
 
-#include "framebuffer/nhd_bsxv_f.h"
+#include "framebuffer/nhd_cf_bsxv.h"
 
 #include <cstdio>
 // pico
-#include "hardware/spi.h"
+#include "hardware/pio.h"
 #include "pico/stdio.h"
 #include "pico/stdio_usb.h"
 #include "pico/stdlib.h"
@@ -12,15 +12,26 @@
 // framebuffer
 #include "framebuffer/font.h"
 #include "framebuffer/roboto.h"
-#include "framebuffer/tft_spi_if.h"
+#include "framebuffer/tft_spi3_if.h"
 
+// Same NhdCfBsxv board as nhd_cf_bsxv_test, but wired 3-wire (spi3.pio)
+// instead of 4-wire hardware SPI, to validate TftSpi3If against real
+// hardware using NhdCfBsxv's already-confirmed init()/madctl() sequence.
+// Only exists to isolate "does the new transport work" from "is this init
+// sequence right" - af_csxp/af_ctxp (the boards spi3.pio actually exists
+// for) already have their own driver now (NhdAfCxxx).
+//
+// Rewiring from nhd_cf_bsxv_test's 4-wire hookup: drop MISO and the separate
+// CD pin, repurpose the old MOSI pin as the single 3-wire DAT line. CLK/CS
+// and RST/backlight are unchanged.
+//
 //                                   +----|USB|----+
 // UART0_TX I2C0_SDA SPI0_RX   GP0   | 1        40 |   VBUS
 // UART0_RX I2C0_SCL SPI0_CSn  GP1   | 2        39 |   VSYS
 //                             GND   | 3        38 |   GND
 //          I2C1_SDA SPI0_SCK  GP2   | 4        37 |   3V3_EN
 //          I2C1_SCL SPI0_TX   GP3   | 5        36 |   3V3(OUT)
-// UART1_TX I2C0_SDA SPI0_RX   GP4 * | 6        35 |   ADC_VREF
+// UART1_TX I2C0_SDA SPI0_RX   GP4   | 6        35 |   ADC_VREF
 // UART1_RX I2C0_SCL SPI0_CSn  GP5 * | 7        34 |   GP28 ADC2
 //                             GND   | 8        33 |   AGND
 //          I2C1_SDA SPI0_SCK  GP6 * | 9        32 |   GP27 ADC1     I2C1_SCL
@@ -28,31 +39,29 @@
 // UART1_TX I2C0_SDA SPI1_RX   GP8 * | 11       30 |   RUN
 // UART1_RX I2C0_SCL SPI1_CSn  GP9 * | 12       29 |   GP22
 //                             GND   | 13       28 |   GND
-//          I2C1_SDA SPI1_SCK GP10 * | 14       27 |   GP21          I2C0_SCL UART1_RX
+//          I2C1_SDA SPI1_SCK GP10   | 14       27 |   GP21          I2C0_SCL UART1_RX
 //          I2C1_SCL SPI1_TX  GP11   | 15       26 |   GP20          I2C0_SDA UART1_TX
 // UART0_TX I2C0_SDA SPI1_RX  GP12   | 16       25 |   GP19 SPI0_TX  I2C1_SCL
 // UART0_RX I2C0_SCL SPI1_CSn GP13   | 17       24 |   GP18 SPI0_SCK I2C1_SDA
 //                             GND   | 18       23 |   GND
-//          I2C1_SDA SPI1_SCK GP14   | 19       22 |   GP17 SPI0_CSn I2C0_SCL UART0_RX
-//          I2C1_SCL SPI1_TX  GP15   | 20       21 |   GP16 SPI0_RX  I2C0_SDA UART0_TX
+//          I2C1_SDA SPI1_SCK GP14   | 19       22 |   GP17 SPI0_CSn I2C0_SCL
+//          I2C1_SCL SPI1_TX  GP15   | 20       21 |   GP16 SPI0_RX  I2C0_SDA
 //                                   +-------------+
 
-static constexpr int spi_miso_gpio = 4;
-static constexpr int spi_mosi_gpio = 7;
-static constexpr int spi_clk_gpio = 6;
-static constexpr int spi_cs_gpio = 5;
-static spi_inst_t* const spi_inst = spi0;
+static constexpr int spi3_dat_gpio = 7; // was spi_mosi_gpio
+static constexpr int spi3_clk_gpio = 6;
+static constexpr int spi3_cs_gpio = 5;
 
-static constexpr int cd_gpio = 10;
 static constexpr int rst_gpio = 9;
 static constexpr int led_gpio = 8;
 
-static constexpr int spi_baud_request = 15'000'000;
+static constexpr float spi3_baud_request = 15'000'000;
 
-// NhdBsxvF's physical size (240x320 portrait) is fixed at compile time, not
+static PIO const spi3_pio = pio0;
+
+// NhdCfBsxv's physical size (240x320 portrait) is fixed at compile time, not
 // a constructor argument; fb_width/fb_height here are just the landscape
-// logical size used by fb_tests.h's layout math. Same physical size as
-// Ws24, so the same font picks apply.
+// logical size used by fb_tests.h's layout math.
 static constexpr int fb_width = 320;
 static constexpr int fb_height = 240;
 static const Font &font = roboto_24;           // height/10
@@ -84,20 +93,21 @@ int main()
     SysLed::off();
 
     printf("\n");
-    printf("nhd_bsxv_f_test\n");
+    printf("nhd_cf_bsxv_3wire_test\n");
     printf("\n");
 
-    // NhdBsxvF needs SPI mode 3 (confirmed against real hardware).
-    TftSpiIf io(spi_inst, spi_miso_gpio, spi_mosi_gpio, spi_clk_gpio,
-                spi_cs_gpio, spi_baud_request, cd_gpio, //
-                SPI_CPOL_1, SPI_CPHA_1);
+    // spi3.pio runs in mode 0 (clock idles low) - no cpol/cpha to pass here,
+    // unlike TftSpiIf. NhdCfBsxv needs mode 3 over 4-wire SPI (see
+    // nhd_cf_bsxv_test), but works fine over this 3-wire transport as-is.
+    TftSpi3If io(spi3_pio, spi3_dat_gpio, spi3_clk_gpio, spi3_cs_gpio,
+                spi3_baud_request);
 
-    NhdBsxvF fb(io, rst_gpio, led_gpio, work, work_bytes);
+    NhdCfBsxv fb(io, rst_gpio, led_gpio, work, work_bytes);
 
-    int spi_baud_actual = fb.spi_freq();
-    int spi_rate_max = spi_baud_actual / 8;
-    printf("spi: requested %d Hz, got %d Hz (max %d bytes/sec)\n", //
-           spi_baud_request, spi_baud_actual, spi_rate_max);
+    int spi3_baud_actual = fb.spi_freq();
+    int spi3_rate_max = spi3_baud_actual / 8;
+    printf("spi3: requested %g Hz, got %d Hz (max %d bytes/sec)\n", //
+           spi3_baud_request, spi3_baud_actual, spi3_rate_max);
 
     fb.init();
 

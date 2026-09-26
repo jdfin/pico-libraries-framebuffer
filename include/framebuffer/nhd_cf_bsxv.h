@@ -19,13 +19,13 @@
 //
 // SPI mode selection now lives on TftSpiIf, not here - the caller is
 // responsible for constructing its TftSpiIf with SPI_CPOL_1/SPI_CPHA_1.
-class NhdBsxvF : public Tft
+class NhdCfBsxv : public Tft
 {
 
 public:
 
-    NhdBsxvF(TftIf &io, int rst_pin, int bk_pin, //
-             void *work = nullptr, int work_bytes = 0) :
+    NhdCfBsxv(TftIf &io, int rst_pin, int bk_pin, //
+              void *work = nullptr, int work_bytes = 0) :
         Tft(io, rst_pin, bk_pin, raw_cols, raw_rows, work, work_bytes)
     {
     }

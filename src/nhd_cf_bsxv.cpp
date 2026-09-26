@@ -8,7 +8,7 @@
 #include "framebuffer/st7789_cmd.h"
 #include "framebuffer/tft.h"
 //
-#include "framebuffer/nhd_bsxv_f.h"
+#include "framebuffer/nhd_cf_bsxv.h"
 
 using namespace St7789Cmd;
 
@@ -18,7 +18,7 @@ using namespace St7789Cmd;
 // data_out() in the sample are just its bit-banged wire protocol - the
 // register writes and values themselves don't depend on that, so the same
 // sequence applies here over SPI.
-void NhdBsxvF::init()
+void NhdCfBsxv::init()
 {
     // at least 10 usec required
     hw_reset(100);
@@ -58,7 +58,7 @@ void NhdBsxvF::init()
 
 
 // MADCTL: see tft.h, madctl()
-uint8_t NhdBsxvF::madctl() const
+uint8_t NhdCfBsxv::madctl() const
 {
     constexpr uint8_t rgb = 0x00;
     if (get_rotation() == Rotation::portrait) {

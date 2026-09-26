@@ -15,7 +15,7 @@
 //
 // Confirmed against real hardware (both parts run this same class/init
 // sequence - electrically and physically identical here, unlike
-// NhdBsxvF's own confirmed differences): only 3-wire SPI is supported (see
+// NhdCfBsxv's own confirmed differences): only 3-wire SPI is supported (see
 // TftSpi3If), and madctl() (below) does not set the RGB/BGR bit.
 class NhdAfCxxx : public Tft
 {
