@@ -191,19 +191,19 @@ static void rotations(Framebuffer &fb)
     sleep_ms(100);
 
     fb.set_rotation(Framebuffer::Rotation::portrait);
-    mark_origin(fb, "portrait", Color::red());
+    mark_origin(fb, "portrait (red)", Color::red());
     sleep_ms(delay_ms);
 
     fb.set_rotation(Framebuffer::Rotation::landscape);
-    mark_origin(fb, "landscape", Color::lime());
+    mark_origin(fb, "landscape (lime)", Color::lime());
     sleep_ms(delay_ms);
 
     fb.set_rotation(Framebuffer::Rotation::portrait2);
-    mark_origin(fb, "portrait2", Color::light_blue());
+    mark_origin(fb, "portrait2 (lt blue)", Color::light_blue());
     sleep_ms(delay_ms);
 
     fb.set_rotation(Framebuffer::Rotation::landscape2);
-    mark_origin(fb, "landscape2", Color::white());
+    mark_origin(fb, "landscape2 (white)", Color::white());
     sleep_ms(delay_ms);
 }
 
@@ -1308,12 +1308,10 @@ static void run(Framebuffer &fb)
 
         uint32_t t1 = time_us_32();
 
-        printf("ImgUpdate:\n");
-        printf(" created %dw x %dh image for \"%s\" in %lu usec\n", img.hdr.wid,
-               img.hdr.hgt, msgs[i], t1 - t0);
+        printf("ImgUpdate: created %dw x %dh image for \"%s\" in %lu usec\n",
+               img.hdr.wid, img.hdr.hgt, msgs[i], t1 - t0);
 
-        printf("ImgUpdate:\n");
-        printf(" writing %dw x %dh image for \"%s\" at 0x%p (%d bytes)\n",
+        printf("ImgUpdate: writing %dw x %dh image for \"%s\" at 0x%p (%d bytes)\n",
                img.hdr.wid, img.hdr.hgt, msgs[i], &img, sizeof(img.pixels));
 
         int hor = 100;

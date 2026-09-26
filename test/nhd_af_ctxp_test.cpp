@@ -3,7 +3,7 @@
 
 #include <cstdio>
 // pico
-#include "hardware/spi.h"
+#include "hardware/pio.h"
 #include "pico/stdio.h"
 #include "pico/stdio_usb.h"
 #include "pico/stdlib.h"
@@ -12,9 +12,38 @@
 // framebuffer
 #include "framebuffer/font.h"
 #include "framebuffer/roboto.h"
-#include "framebuffer/tft_spi_if.h"
-//
-#include "nhd_af_ctxp_test_cfg.h"
+#include "framebuffer/tft_spi3_if.h"
+
+//                                   +----|USB|----+
+// UART0_TX I2C0_SDA SPI0_RX   GP0   | 1        40 |   VBUS
+// UART0_RX I2C0_SCL SPI0_CSn  GP1   | 2        39 |   VSYS
+//                             GND   | 3        38 |   GND
+//          I2C1_SDA SPI0_SCK  GP2   | 4        37 |   3V3_EN
+//          I2C1_SCL SPI0_TX   GP3   | 5        36 |   3V3(OUT)
+// UART1_TX I2C0_SDA SPI0_RX   GP4   | 6        35 |   ADC_VREF
+// UART1_RX I2C0_SCL SPI0_CSn  GP5   | 7        34 |   GP28 ADC2
+//                             GND   | 8        33 |   AGND
+//          I2C1_SDA SPI0_SCK  GP6   | 9        32 |   GP27 ADC1     I2C1_SCL
+//          I2C1_SCL SPI0_TX   GP7   | 10       31 |   GP26 ADC0     I2C1_SDA
+// UART1_TX I2C0_SDA SPI1_RX   GP8   | 11       30 |   RUN
+// UART1_RX I2C0_SCL SPI1_CSn  GP9   | 12       29 |   GP22
+//                             GND   | 13       28 |   GND
+//          I2C1_SDA SPI1_SCK GP10   | 14       27 |   GP21          I2C0_SCL UART1_RX
+//          I2C1_SCL SPI1_TX  GP11   | 15       26 | * GP20          I2C0_SDA UART1_TX
+// UART0_TX I2C0_SDA SPI1_RX  GP12   | 16       25 | * GP19 SPI0_TX  I2C1_SCL
+// UART0_RX I2C0_SCL SPI1_CSn GP13   | 17       24 | * GP18 SPI0_SCK I2C1_SDA
+//                             GND   | 18       23 |   GND
+//          I2C1_SDA SPI1_SCK GP14   | 19       22 | * GP17 SPI0_CSn I2C0_SCL UART0_RX
+//          I2C1_SCL SPI1_TX  GP15   | 20       21 | * GP16 SPI0_RX  I2C0_SDA UART0_TX
+//                                   +-------------+
+
+constexpr int spi3_mosi_gpio = 16;
+constexpr int spi3_clk_gpio = 17;
+constexpr int spi3_cs_gpio = 18;
+static PIO const spi3_pio = pio0;
+
+constexpr int rst_gpio = 19;
+constexpr int led_gpio = 20;
 
 static constexpr int spi_baud_request = 15'000'000;
 
@@ -56,10 +85,9 @@ int main()
     printf("nhd_af_ctxp_test\n");
     printf("\n");
 
-    TftSpiIf io(fb_spi_inst, fb_spi_miso_gpio, fb_spi_mosi_gpio, fb_spi_clk_gpio,
-                fb_spi_cs_gpio, spi_baud_request, fb_cd_gpio);
+    TftSpi3If io(spi3_pio, spi3_mosi_gpio, spi3_clk_gpio, spi3_cs_gpio, spi_baud_request);
 
-    NhdAfCtxp fb(io, fb_rst_gpio, fb_led_gpio, work, work_bytes);
+    NhdAfCtxp fb(io, rst_gpio, led_gpio, work, work_bytes);
 
     int spi_baud_actual = fb.spi_freq();
     int spi_rate_max = spi_baud_actual / 8;
