@@ -1,6 +1,28 @@
 
 add_compile_options(-Wall -Wextra -Werror)
 
+
+# spi3_test
+
+add_executable(spi3_test
+    spi3_test.cpp
+)
+
+pico_generate_pio_header(spi3_test ${CMAKE_CURRENT_LIST_DIR}/spi3.pio)
+
+pico_enable_stdio_uart(spi3_test 0)
+pico_enable_stdio_usb(spi3_test 1)
+
+target_link_libraries(spi3_test PRIVATE
+    pico_stdlib
+    pico_stdio_usb
+    hardware_dma
+    hardware_pio
+)
+
+pico_add_extra_outputs(spi3_test)
+
+
 # ws35_test
 
 add_executable(ws35_test

@@ -1,0 +1,142 @@
+
+// "spi3" is the 3-wire spi used with many display controller chips (e.g.
+// ST77xx, ILI9341, probably many others). The complication is that each byte
+// is sent as nine bits, where the first bit indicates data/command. Goals for
+// this implementation:
+// * send single-byte commands synchronously
+// * send several bytes of parameters synchronously
+// * send pixel data via DMA with 16-bit transfers (each pixel 16 bits)
+// The last point means we need to handle putting a 16 bit value in the tx
+// fifo (via dma), and have the d/c bit go before each byte. The upper byte
+// of the 16 bits is sent first to match how "normal" spi works. Pixel data
+// packed for normal spi dma transfers should work with dma to this spi3
+// device.
+
+.program spi3
+
+.side_set 1
+
+.wrap_target
+    pull block          side 0  ; stall until more data in fifo
+byte_loop:
+    mov pins, y         side 0  ; d/c bit for this byte, clock low
+    nop                 side 1  ; clock high: d/c bit sampled here
+    out pins, 1         side 0  ; data bit 7, clock low
+    nop                 side 1  ; clock high: bit sampled
+    out pins, 1         side 0  ; data bit 6
+    nop                 side 1
+    out pins, 1         side 0  ; data bit 5
+    nop                 side 1
+    out pins, 1         side 0  ; data bit 4
+    nop                 side 1
+    out pins, 1         side 0  ; data bit 3
+    nop                 side 1
+    out pins, 1         side 0  ; data bit 2
+    nop                 side 1
+    out pins, 1         side 0  ; data bit 1
+    nop                 side 1
+    out pins, 1         side 0  ; data bit 0
+    nop                 side 1
+    jmp !osre byte_loop side 0  ; loop again if 16 bits
+.wrap
+
+% c-sdk {
+
+#include <assert.h>
+#include "pico/stdlib.h"
+#include "hardware/clocks.h"
+#include "hardware/pio.h"
+
+// SM config is changed when we switch from 8-bit to 16-bit writes
+static pio_sm_config spi3_sm_config;
+static uint spi3_offset;
+[[maybe_unused]]
+static uint spi3_bits; // only need global for asserts
+
+
+// Claim and configure a state machine running spi3.
+// Default is 8-bit mode.
+static inline uint spi3_init(PIO pio, int dat_gpio, int clk_gpio, float clk_hz)
+{
+    uint sm = pio_claim_unused_sm(pio, true);
+    spi3_offset = pio_add_program(pio, &spi3_program);
+
+    spi3_sm_config = spi3_program_get_default_config(spi3_offset);
+    sm_config_set_out_pins(&spi3_sm_config, dat_gpio, 1);
+    sm_config_set_sideset_pins(&spi3_sm_config, clk_gpio);
+    // MSB first, no autopull, 8 bits
+    spi3_bits = 8;
+    sm_config_set_out_shift(&spi3_sm_config, false, false, spi3_bits);
+
+    // clk toggles once per sm clock (one side-set change per instruction),
+    // so its frequency is half the sm clock.
+    float sm_hz = 2.0f * clk_hz;
+    float clkdiv = (float)clock_get_hz(clk_sys) / sm_hz;
+    sm_config_set_clkdiv(&spi3_sm_config, clkdiv);
+
+    pio_gpio_init(pio, dat_gpio);
+    pio_gpio_init(pio, clk_gpio);
+    pio_sm_set_consecutive_pindirs(pio, sm, dat_gpio, 1, true);
+    pio_sm_set_consecutive_pindirs(pio, sm, clk_gpio, 1, true);
+    // idle both pins low before the sm starts driving them
+    pio_sm_set_pins_with_mask(pio, sm, 0, (1u << dat_gpio) | (1u << clk_gpio));
+
+    pio_sm_init(pio, sm, spi3_offset, &spi3_sm_config);
+    pio_sm_set_enabled(pio, sm, true);
+
+    return sm;
+}
+
+
+// Waits for the state machine to finish shifting out all bits pushed.
+static inline void spi3_wait_idle(PIO pio, uint sm)
+{
+    // wait for fifo empty
+    while (!pio_sm_is_tx_fifo_empty(pio, sm))
+        tight_loop_contents();
+    // wait for all bits to shift out and program to stall at the "pull block"
+    pio->fdebug = 1u << (PIO_FDEBUG_TXSTALL_LSB + sm);
+    while (!(pio->fdebug & (1u << (PIO_FDEBUG_TXSTALL_LSB + sm))))
+        tight_loop_contents();
+}
+
+
+// Selects d/c for the bytes about to be sent.
+static inline void spi3_set_dc(PIO pio, uint sm, int dc)
+{
+    assert(dc == 0 || dc == 1);
+    spi3_wait_idle(pio, sm);
+    pio_sm_exec_wait_blocking(pio, sm, pio_encode_set(pio_y, dc));
+}
+
+
+// Set 8 or 16 bits per transfer
+static inline void spi3_set_bits(PIO pio, uint sm, uint bits)
+{
+    assert(bits == 8 || bits == 16);
+    spi3_wait_idle(pio, sm);
+    spi3_bits = bits;
+    sm_config_set_out_shift(&spi3_sm_config, false, false, spi3_bits);
+    pio_sm_init(pio, sm, spi3_offset, &spi3_sm_config);
+    pio_sm_set_enabled(pio, sm, true);
+}
+
+
+// Send one byte using d/c last set with spi3_set_dc().
+// Blocks if tx fifo is full.
+static inline void spi3_put8(PIO pio, uint sm, uint8_t byte)
+{
+    assert(spi3_bits == 8);
+    pio_sm_put_blocking(pio, sm, (uint32_t)byte << 24);
+}
+
+
+// Sends 16 bits using d/c last set with spi3_set_dc(), upper byte
+// then lower byte. Blocks if tx fifo is full.
+static inline void spi3_put16(PIO pio, uint sm, uint16_t word)
+{
+    assert(spi3_bits == 16);
+    pio_sm_put_blocking(pio, sm, (uint32_t)word << 16);
+}
+
+%}
