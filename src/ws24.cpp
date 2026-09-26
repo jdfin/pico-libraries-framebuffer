@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <cstdlib>
 // pico
-#include "hardware/spi.h"
 #include "pico/stdlib.h"
 // framebuffer
 #include "framebuffer/ili9341_cmd.h"
@@ -16,11 +15,9 @@
 using namespace Ili9341Cmd;
 
 
-Ws24::Ws24(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin, int cs_pin,
-           int baud, int cd_pin, int rst_pin, int bk_pin, int width, int height,
+Ws24::Ws24(TftIf &io, int rst_pin, int bk_pin, int width, int height,
            void *work, int work_bytes) :
-    Tft(spi, miso_pin, mosi_pin, clk_pin, cs_pin, baud, cd_pin, rst_pin, bk_pin,
-        width, height, work, work_bytes)
+    Tft(io, rst_pin, bk_pin, width, height, work, work_bytes)
 {
 }
 
@@ -60,13 +57,11 @@ void Ws24::init()
     };
     const int cmds_len = sizeof(cmds) / sizeof(cmds[0]);
 
-    write_cmds(cmds, cmds_len); // sets to 8-bit spi
+    write_cmds(cmds, cmds_len);
 
     init_colors();
 
-    const uint8_t cmd = DISPON;
-    command();
-    spi_write_blocking(_spi, &cmd, 1);
+    _io.write_cmd(DISPON);
 }
 
 
@@ -129,10 +124,7 @@ void Ws24::init_colors()
     assert(is_xip(color_lut));
     const uint8_t *color_lut_nocache = (const uint8_t *)xip_nocache(color_lut);
 
-    command();
-    uint8_t cmd = RGBSET;
-    spi_write_blocking(_spi, &cmd, 1);
-
-    data();
-    spi_write_blocking(_spi, color_lut_nocache, 128);
+    _io.write_cmd(RGBSET);
+    for (int i = 0; i < 128; i++)
+        _io.write_data(color_lut_nocache[i]);
 }

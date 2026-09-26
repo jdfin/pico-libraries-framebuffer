@@ -2,7 +2,6 @@
 
 #include <cstdint>
 // pico
-#include "hardware/spi.h"
 #include "pico/stdlib.h"
 // framebuffer
 #include "framebuffer/tft.h"
@@ -17,19 +16,17 @@
 // NOT yet confirmed against real hardware, unlike NhdBsxvF - see the
 // comment there) to need only Newhaven's Cxxx-sample MADCTL values below,
 // with no RGB/BGR bit and no SPI mode 3. If this part turns out to need
-// the same fixes NhdBsxvF needed, update madctl()/spi_cpol()/spi_cpha()
-// here to match.
+// the same fixes NhdBsxvF needed, update madctl() here and construct this
+// board's TftSpiIf with SPI_CPOL_1/SPI_CPHA_1 (mode selection now lives on
+// TftSpiIf, not here).
 class NhdAfCsxp : public Tft
 {
 
 public:
 
-    // baud normally 15'000'000
-    NhdAfCsxp(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,
-              int cs_pin, int baud, int cd_pin, int rst_pin, int bk_pin,
+    NhdAfCsxp(TftIf &io, int rst_pin, int bk_pin, //
               void *work = nullptr, int work_bytes = 0) :
-        Tft(spi, miso_pin, mosi_pin, clk_pin, cs_pin, baud, cd_pin, rst_pin,
-            bk_pin, raw_cols, raw_rows, work, work_bytes)
+        Tft(io, rst_pin, bk_pin, raw_cols, raw_rows, work, work_bytes)
     {
     }
 

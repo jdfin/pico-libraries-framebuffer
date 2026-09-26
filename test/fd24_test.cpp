@@ -12,6 +12,7 @@
 // framebuffer
 #include "framebuffer/font.h"
 #include "framebuffer/roboto.h"
+#include "framebuffer/tft_spi_if.h"
 
 // 4D Systems 4DLCD-24320240-IPS (ST7789V, non-touch)
 
@@ -90,9 +91,12 @@ int main()
     printf("fd24_test\n");
     printf("\n");
 
-    Fd24 fb(fb_spi_inst, fb_spi_miso_gpio, fb_spi_mosi_gpio, fb_spi_clk_gpio,
-            fb_spi_cs_gpio, spi_baud_request, fb_cd_gpio, fb_rst_gpio,
-            fb_led_gpio, work, work_bytes);
+    // Fd24 needs SPI mode 3.
+    TftSpiIf io(fb_spi_inst, fb_spi_miso_gpio, fb_spi_mosi_gpio, fb_spi_clk_gpio,
+                fb_spi_cs_gpio, spi_baud_request, fb_cd_gpio, //
+                SPI_CPOL_1, SPI_CPHA_1);
+
+    Fd24 fb(io, fb_rst_gpio, fb_led_gpio, work, work_bytes);
 
     int spi_baud_actual = fb.spi_freq();
     int spi_rate_max = spi_baud_actual / 8;

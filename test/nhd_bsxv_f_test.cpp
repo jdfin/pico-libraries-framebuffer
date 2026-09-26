@@ -12,6 +12,7 @@
 // framebuffer
 #include "framebuffer/font.h"
 #include "framebuffer/roboto.h"
+#include "framebuffer/tft_spi_if.h"
 
 //                                   +----|USB|----+
 // UART0_TX I2C0_SDA SPI0_RX   GP0   | 1        40 |   VBUS
@@ -86,9 +87,12 @@ int main()
     printf("nhd_bsxv_f_test\n");
     printf("\n");
 
-    NhdBsxvF fb(spi_inst, spi_miso_gpio, spi_mosi_gpio, spi_clk_gpio,
-                spi_cs_gpio, spi_baud_request, cd_gpio, rst_gpio,
-                led_gpio, work, work_bytes);
+    // NhdBsxvF needs SPI mode 3 (confirmed against real hardware).
+    TftSpiIf io(spi_inst, spi_miso_gpio, spi_mosi_gpio, spi_clk_gpio,
+                spi_cs_gpio, spi_baud_request, cd_gpio, //
+                SPI_CPOL_1, SPI_CPHA_1);
+
+    NhdBsxvF fb(io, rst_gpio, led_gpio, work, work_bytes);
 
     int spi_baud_actual = fb.spi_freq();
     int spi_rate_max = spi_baud_actual / 8;

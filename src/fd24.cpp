@@ -3,7 +3,6 @@
 #include <cstdint>
 // pico
 #include "hardware/gpio.h"
-#include "hardware/spi.h"
 #include "pico/stdlib.h"
 // framebuffer
 #include "framebuffer/st7789_cmd.h"
@@ -74,7 +73,7 @@ void Fd24::init()
     };
     const int cmds_len = sizeof(cmds) / sizeof(cmds[0]);
 
-    write_cmds(cmds, cmds_len); // sets to 8-bit spi
+    write_cmds(cmds, cmds_len);
 }
 
 

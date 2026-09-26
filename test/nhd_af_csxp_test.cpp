@@ -12,6 +12,7 @@
 // framebuffer
 #include "framebuffer/font.h"
 #include "framebuffer/roboto.h"
+#include "framebuffer/tft_spi_if.h"
 //
 #include "nhd_af_csxp_test_cfg.h"
 
@@ -55,9 +56,10 @@ int main()
     printf("nhd_af_csxp_test\n");
     printf("\n");
 
-    NhdAfCsxp fb(fb_spi_inst, fb_spi_miso_gpio, fb_spi_mosi_gpio, fb_spi_clk_gpio,
-                 fb_spi_cs_gpio, spi_baud_request, fb_cd_gpio, fb_rst_gpio,
-                 fb_led_gpio, work, work_bytes);
+    TftSpiIf io(fb_spi_inst, fb_spi_miso_gpio, fb_spi_mosi_gpio, fb_spi_clk_gpio,
+                fb_spi_cs_gpio, spi_baud_request, fb_cd_gpio);
+
+    NhdAfCsxp fb(io, fb_rst_gpio, fb_led_gpio, work, work_bytes);
 
     int spi_baud_actual = fb.spi_freq();
     int spi_rate_max = spi_baud_actual / 8;

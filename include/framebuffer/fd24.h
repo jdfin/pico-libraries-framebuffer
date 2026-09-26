@@ -2,7 +2,6 @@
 
 #include <cstdint>
 // pico
-#include "hardware/spi.h"
 #include "pico/stdlib.h"
 // framebuffer
 #include "framebuffer/tft.h"
@@ -14,17 +13,18 @@
 // driver; see st7789_cmd.h.) Physical panel is portrait-native (240 cols
 // x 320 rows) silicon, so like NhdBsxvF/NhdAfCtxp/NhdAfCsxp, width/height
 // are fixed at compile time rather than taken as constructor arguments.
+//
+// Needs SPI mode 3 (CPOL=1, CPHA=1) - the caller is responsible for
+// constructing its TftSpiIf with SPI_CPOL_1/SPI_CPHA_1; that's no longer
+// this class's concern now that mode selection lives on TftSpiIf, not Tft.
 class Fd24 : public Tft
 {
 
 public:
 
-    // baud normally 15'000'000
-    Fd24(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,
-         int cs_pin, int baud, int cd_pin, int rst_pin, int bk_pin,
+    Fd24(TftIf &io, int rst_pin, int bk_pin, //
          void *work = nullptr, int work_bytes = 0) :
-        Tft(spi, miso_pin, mosi_pin, clk_pin, cs_pin, baud, cd_pin, rst_pin,
-            bk_pin, raw_cols, raw_rows, work, work_bytes)
+        Tft(io, rst_pin, bk_pin, raw_cols, raw_rows, work, work_bytes)
     {
     }
 
@@ -36,16 +36,4 @@ private:
     static constexpr int raw_rows = 320; // native row count
 
     virtual uint8_t madctl() const;
-
-    // SPI mode 3 (CPOL=1, CPHA=1)
-
-    virtual spi_cpol_t spi_cpol() const
-    {
-        return SPI_CPOL_1;
-    }
-
-    virtual spi_cpha_t spi_cpha() const
-    {
-        return SPI_CPHA_1;
-    }
 };

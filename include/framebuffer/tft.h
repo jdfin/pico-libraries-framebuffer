@@ -5,15 +5,13 @@
 // pico
 #include "hardware/dma.h"
 #include "hardware/gpio.h"
-#include "hardware/spi.h"
 #include "pico/stdlib.h"
 // framebuffer
 #include "framebuffer/color.h"
 #include "framebuffer/font.h"
 #include "framebuffer/framebuffer.h"
 #include "framebuffer/pixel_565.h"
-// misc
-#include "misc/spi_extra.h"
+#include "framebuffer/tft_if.h"
 
 
 // It's not difficult to handle either 8-bit or 16-bit pixel transfers, but
@@ -26,8 +24,9 @@ class Tft : public Framebuffer
 
 public:
 
-    Tft(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin, int cs_pin,
-        int baud, int cd_pin, int rst_pin, int bk_pin, int width, int height,
+    // 'io' provides all panel I/O (see framebuffer/tft_if.h) and must
+    // outlive this Tft.
+    Tft(TftIf &io, int rst_pin, int bk_pin, int width, int height,
         void *work = nullptr, int work_bytes = 0);
 
     virtual ~Tft();
@@ -43,7 +42,7 @@ public:
 
     int spi_freq() const
     {
-        return _spi_freq;
+        return _io.freq();
     }
 
     virtual void set_rotation(Rotation r) override;
@@ -112,16 +111,7 @@ protected:
     //static constexpr uint8_t EN3G = 0xf2;
     //static constexpr uint8_t PMPCTL = 0xf7;
 
-    spi_inst_t *_spi;
-
-    int _spi_freq;
-
-    // spi pins
-    int _miso_pin, _mosi_pin, _clk_pin, _cs_pin;
-    int _baud;
-
-    // control/data
-    int _cd_pin;
+    TftIf &_io;
 
     // hardware reset
     int _rst_pin;
@@ -186,38 +176,11 @@ protected:
     //   04 MH  horizontal refresh order (always 0)
     virtual uint8_t madctl() const = 0;
 
-    // SPI mode. Every panel so far uses mode 0 (the default below);
-    // override if a panel needs a different one (e.g. mode 3).
-    virtual spi_cpol_t spi_cpol() const
-    {
-        return SPI_CPOL_0;
-    }
-    virtual spi_cpha_t spi_cpha() const
-    {
-        return SPI_CPHA_0;
-    }
-
     // Working buffer used to render character. Any size is okay, but bigger
     // means fewer transfers. Supplied to constructor.
     static_assert(sizeof(Pixel565) == sizeof(uint16_t));
     Pixel565 *_pix_buf;
     int _pix_buf_len; // number of pixels
-
-    static constexpr bool cs_assert = false;
-    static constexpr bool cs_deassert = true;
-
-    static constexpr bool cd_gpio_command = false;
-    static constexpr bool cd_gpio_data = true;
-
-    void data()
-    {
-        gpio_put(_cd_pin, cd_gpio_data);
-    }
-
-    void command()
-    {
-        gpio_put(_cd_pin, cd_gpio_command);
-    }
 
     // write_cmds() takes an array of uint16_t. Each entry uses the upper
     // byte to indicate command, data, or delay, and the lower byte is an
@@ -231,51 +194,7 @@ protected:
 
     void write_cmds(const uint16_t *b, int b_len);
 
-    void write(uint8_t cmd, uint8_t *buf, int buf_len);
-
     void set_window(uint16_t hor, uint16_t ver, uint16_t wid, uint16_t hgt);
-
-    inline void spi_wait()
-    {
-        while (spi_is_busy(_spi))
-            tight_loop_contents();
-    }
-
-    inline void spi_write_command(uint8_t b0)
-    {
-        assert(spix_get_data_bits(_spi) == 8);
-        command();
-        spi_get_hw(_spi)->dr = b0;
-        spi_wait();
-    }
-
-    inline void spi_write_data(uint8_t b0)
-    {
-        assert(spix_get_data_bits(_spi) == 8);
-        data();
-        spi_get_hw(_spi)->dr = b0;
-        spi_wait();
-    }
-
-    inline void spi_write_data(uint16_t p0)
-    {
-        assert(spix_get_data_bits(_spi) == 8);
-        data();
-        spi_get_hw(_spi)->dr = (uint32_t)(p0 >> 8);
-        spi_get_hw(_spi)->dr = (uint32_t)p0;
-        spi_wait();
-    }
-
-    inline void spi_write_data(uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3)
-    {
-        assert(spix_get_data_bits(_spi) == 8);
-        data();
-        spi_get_hw(_spi)->dr = (uint32_t)b0;
-        spi_get_hw(_spi)->dr = (uint32_t)b1;
-        spi_get_hw(_spi)->dr = (uint32_t)b2;
-        spi_get_hw(_spi)->dr = (uint32_t)b3;
-        spi_wait();
-    }
 
     // async support
 

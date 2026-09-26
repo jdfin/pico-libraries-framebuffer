@@ -7,7 +7,6 @@
 // pico
 #include "hardware/dma.h"
 #include "hardware/gpio.h"
-#include "hardware/spi.h"
 #include "hardware/sync.h"
 #include "pico/stdlib.h"
 // framebuffer
@@ -21,22 +20,13 @@
 // misc
 #include "misc/dbg_gpio.h"
 #include "misc/dma_extra.h"
-#include "misc/spi_extra.h"
 #include "misc/util.h"
 
 
-Tft::Tft(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,
-                 int cs_pin, int baud, int cd_pin, int rst_pin, int bk_pin,
-                 int width, int height, void *work, int work_bytes) :
+Tft::Tft(TftIf &io, int rst_pin, int bk_pin, int width, int height, //
+                 void *work, int work_bytes) :
     Framebuffer(width, height),
-    _spi(spi),
-    _spi_freq(0),
-    _miso_pin(miso_pin),
-    _mosi_pin(mosi_pin),
-    _clk_pin(clk_pin),
-    _cs_pin(cs_pin), // optional; it's always asserted
-    _baud(baud),     // requested; actual may be different
-    _cd_pin(cd_pin),
+    _io(io),
     _rst_pin(rst_pin),
     _bk_pin(bk_pin),
     // _dma_ch
@@ -50,27 +40,9 @@ Tft::Tft(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,
     _op_next(0),
     _op_free(0)
 {
-    assert(_spi != nullptr);
-    assert(_miso_pin >= 0 && _mosi_pin >= 0 && _clk_pin >= 0);
-    assert(_cd_pin >= 0 && _rst_pin >= 0);
+    assert(_rst_pin >= 0);
 
     //DbgGpio::init(28);
-
-    _spi_freq = spi_init(_spi, _baud);
-    gpio_set_function(_miso_pin, GPIO_FUNC_SPI);
-    gpio_set_function(_mosi_pin, GPIO_FUNC_SPI);
-    gpio_set_function(_clk_pin, GPIO_FUNC_SPI);
-    spi_set_format(_spi, 8, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
-
-    if (_cs_pin >= 0) {
-        gpio_init(_cs_pin);
-        gpio_set_dir(_cs_pin, gpio_out);
-        gpio_put(_cs_pin, cs_assert);
-    }
-
-    gpio_init(_cd_pin);
-    gpio_set_dir(_cd_pin, gpio_out);
-    // don't care if it's high or low at this point (but it's low)
 
     gpio_init(_rst_pin);
     gpio_put(_rst_pin, rst_assert);
@@ -88,9 +60,9 @@ Tft::Tft(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,
     // DMA is only used for pixel data
     _dma_ch = dma_claim_unused_channel(true);
     _dma_cfg = dma_channel_get_default_config(_dma_ch);
-    channel_config_set_dreq(&_dma_cfg, spi_get_dreq(_spi, true));
+    channel_config_set_dreq(&_dma_cfg, _io.dreq());
     channel_config_set_transfer_data_size(&_dma_cfg, DMA_SIZE_16);
-    channel_config_set_write_increment(&_dma_cfg, false); // write to spi
+    channel_config_set_write_increment(&_dma_cfg, false); // write to transport
     dmax_irqn_set_channel_handler(0, _dma_ch, dma_raw_handler, (intptr_t)this);
     dmax_irqn_set_channel_enabled(0, _dma_ch, true);
 }
@@ -105,20 +77,14 @@ Tft::~Tft()
 void Tft::write_cmds(const uint16_t *b, int b_len)
 {
     assert(b != nullptr && b_len >= 1);
-    spi_set_format(_spi, 8, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
     while (b_len > 0) {
         uint16_t next = *b++;
         if ((next & wr_mask) == wr_cmd) {
-            command();
-            uint8_t d = uint8_t(next);
-            spi_write_blocking(_spi, &d, 1);
+            _io.write_cmd(uint8_t(next));
         } else if ((next & wr_mask) == wr_data) {
-            data();
-            uint8_t d = uint8_t(next);
-            spi_write_blocking(_spi, &d, 1);
+            _io.write_data(uint8_t(next));
         } else if ((next & wr_mask) == wr_delay_ms) {
-            uint8_t d = uint8_t(next);
-            sleep_ms(d);
+            sleep_ms(uint8_t(next));
         }
         b_len--;
     }
@@ -156,9 +122,8 @@ void Tft::set_rotation(Rotation r)
 
     wait_idle(); // wait for any queued dmas to finish
 
-    spi_set_format(_spi, 8, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
-    spi_write_command(MADCTL);
-    spi_write_data(madctl());
+    _io.write_cmd(MADCTL);
+    _io.write_data(madctl());
 }
 
 
@@ -166,19 +131,21 @@ void Tft::set_window(uint16_t hor, uint16_t ver, uint16_t wid, uint16_t hgt)
 {
     //DbgGpio d(28);
 
-    spi_set_format(_spi, 8, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
-
-    spi_write_command(CASET);
+    _io.write_cmd(CASET);
 
     const uint h2 = hor + wid - 1;
-    spi_write_data(uint8_t(hor >> 8), uint8_t(hor), uint8_t(h2 >> 8),
-                   uint8_t(h2));
+    _io.write_data(uint8_t(hor >> 8));
+    _io.write_data(uint8_t(hor));
+    _io.write_data(uint8_t(h2 >> 8));
+    _io.write_data(uint8_t(h2));
 
-    spi_write_command(RASET);
+    _io.write_cmd(RASET);
 
     const uint v2 = ver + hgt - 1;
-    spi_write_data(uint8_t(ver >> 8), uint8_t(ver), uint8_t(v2 >> 8),
-                   uint8_t(v2));
+    _io.write_data(uint8_t(ver >> 8));
+    _io.write_data(uint8_t(ver));
+    _io.write_data(uint8_t(v2 >> 8));
+    _io.write_data(uint8_t(v2));
 }
 
 
@@ -186,10 +153,10 @@ void Tft::pixel(int hor, int ver, const Color c)
 {
     wait_idle();
 
-    set_window(hor, ver, 1, 1); // sets to 8-bit spi
-    spi_write_command(RAMWR);
+    set_window(hor, ver, 1, 1);
+    _io.write_cmd(RAMWR);
     const Pixel565 p = c; // Pixel565::operator= converts from Color
-    spi_write_data(p.value());
+    _io.write_data16(p.value());
 }
 
 
@@ -237,7 +204,7 @@ void Tft::draw_rect(int hor, int ver, int wid, int hgt, const Color c)
 
 void Tft::dma_handler()
 {
-    spi_wait();
+    _io.wait_transport_idle();
 
     // anything new to do?
     if (ops_empty()) {
@@ -250,12 +217,11 @@ void Tft::dma_handler()
             const int hgt = _ops[_op_next].hgt;
             _dma_pixel = _ops[_op_next].pixel;
             __dmb(); // _dma_pixel must be in memory before starting dma
-            set_window(hor, ver, wid, hgt); // sets to 8-bit spi
-            spi_write_command(RAMWR);
-            data();
-            spi_set_format(_spi, 16, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
+            set_window(hor, ver, wid, hgt);
+            _io.write_cmd(RAMWR);
+            _io.begin_data16_burst();
             channel_config_set_read_increment(&_dma_cfg, false);
-            dma_channel_configure(_dma_ch, &_dma_cfg, &spi_get_hw(_spi)->dr,
+            dma_channel_configure(_dma_ch, &_dma_cfg, _io.fifo_addr(),
                                   &_dma_pixel, wid * hgt, true); // go!
         } else if (_ops[_op_next].op == AsyncOp::Copy) {
             const int hor = _ops[_op_next].hor;
@@ -263,12 +229,11 @@ void Tft::dma_handler()
             const int wid = _ops[_op_next].wid;
             const int hgt = _ops[_op_next].hgt;
             const void *pixels = _ops[_op_next].pixels;
-            set_window(hor, ver, wid, hgt); // sets to 8-bit spi
-            spi_write_command(RAMWR);
-            data();
-            spi_set_format(_spi, 16, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
+            set_window(hor, ver, wid, hgt);
+            _io.write_cmd(RAMWR);
+            _io.begin_data16_burst();
             channel_config_set_read_increment(&_dma_cfg, true);
-            dma_channel_configure(_dma_ch, &_dma_cfg, &spi_get_hw(_spi)->dr,
+            dma_channel_configure(_dma_ch, &_dma_cfg, _io.fifo_addr(),
                                   pixels, wid * hgt, true); // go!
         } else {
             assert(false); // only Fill and Copy
@@ -529,12 +494,9 @@ void Tft::print(int hor, int ver, char c, const Font &font, //
     wait_idle();
 
     // Set spi transfer window - all pixels in this window will be filled.
-    set_window(hor, ver, font.info[ci].x_adv, font.y_adv); // sets to 8-bit spi
+    set_window(hor, ver, font.info[ci].x_adv, font.y_adv);
 
-    const uint8_t cmd = RAMWR;
-    command();
-    spi_write_blocking(_spi, &cmd, 1);
-    data();
+    _io.write_cmd(RAMWR);
 
     // Iterate through entire character box. Margins around the glyph are
     // background. Pixels in the glyph are interpolated from the glyph data.
@@ -543,8 +505,6 @@ void Tft::print(int hor, int ver, char c, const Font &font, //
     // When _pix_buf fills up, we write it out to the display then start over.
 
     // Assigning to _pix_buf[] from Color uses Pixel565::operator=.
-
-    spi_set_format(_spi, 16, spi_cpol(), spi_cpha(), SPI_MSB_FIRST);
 
     Pixel565 bg_pix = bg; // convert once
 
@@ -568,13 +528,12 @@ void Tft::print(int hor, int ver, char c, const Font &font, //
             }
             if (p >= _pix_buf_len) {
                 // Send buffer and restart it.
-                spi_write16_blocking(_spi, (const uint16_t *)(_pix_buf),
-                                     _pix_buf_len);
+                _io.write_data16_blocking((const uint16_t *)(_pix_buf), _pix_buf_len);
                 p = 0;
             }
         }
     }
     // Send final (partial) buffer if necessary.
     if (p > 0)
-        spi_write16_blocking(_spi, (const uint16_t *)(_pix_buf), p);
+        _io.write_data16_blocking((const uint16_t *)(_pix_buf), p);
 }
