@@ -8,7 +8,7 @@
 #include "framebuffer/st7789_cmd.h"
 #include "framebuffer/tft.h"
 //
-#include "framebuffer/nhd_af_ctxp.h"
+#include "framebuffer/nhd_af_cxxx.h"
 
 using namespace St7789Cmd;
 
@@ -16,8 +16,9 @@ using namespace St7789Cmd;
 // Init sequence transcribed from Newhaven's own sample code for these parts
 // (see newhaven/NHD-2.4-240320CF-Cxxx.ino, function setup()), then adjusted
 // slightly to get it working. Main difference is the MADCTL RGB bit should
-// not be set.
-void NhdAfCtxp::init()
+// not be set. Confirmed against real hardware on both AF-CTXP and AF-CSXP -
+// identical init sequence and madctl() work for both.
+void NhdAfCxxx::init()
 {
     // at least 10 usec required
     hw_reset(100);
@@ -58,7 +59,7 @@ void NhdAfCtxp::init()
 
 
 // MADCTL: see tft.h, madctl()
-uint8_t NhdAfCtxp::madctl() const
+uint8_t NhdAfCxxx::madctl() const
 {
     // This does not match the Newhaven sample code but this is what works.
     // Sample code writes 0x88; 0x80 does not give a useful rotation, and the

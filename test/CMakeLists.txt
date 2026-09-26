@@ -127,46 +127,24 @@ target_link_libraries(nhd_bsxv_f_3wire_test PRIVATE
 pico_add_extra_outputs(nhd_bsxv_f_3wire_test)
 
 
-# nhd_af_ctxp_test
+# nhd_af_cxxx_test (covers both AF-CTXP and AF-CSXP - identical code)
 
-add_executable(nhd_af_ctxp_test
-    nhd_af_ctxp_test.cpp
+add_executable(nhd_af_cxxx_test
+    nhd_af_cxxx_test.cpp
 )
 
-pico_enable_stdio_uart(nhd_af_ctxp_test 0)
-pico_enable_stdio_usb(nhd_af_ctxp_test 1)
+pico_enable_stdio_uart(nhd_af_cxxx_test 0)
+pico_enable_stdio_usb(nhd_af_cxxx_test 1)
 
-target_link_libraries(nhd_af_ctxp_test PRIVATE
+target_link_libraries(nhd_af_cxxx_test PRIVATE
     pico_rand
     pico_stdlib
     pico_stdio_usb
-    hardware_spi
     framebuffer
     misc
 )
 
-pico_add_extra_outputs(nhd_af_ctxp_test)
-
-
-# nhd_af_csxp_test
-
-add_executable(nhd_af_csxp_test
-    nhd_af_csxp_test.cpp
-)
-
-pico_enable_stdio_uart(nhd_af_csxp_test 0)
-pico_enable_stdio_usb(nhd_af_csxp_test 1)
-
-target_link_libraries(nhd_af_csxp_test PRIVATE
-    pico_rand
-    pico_stdlib
-    pico_stdio_usb
-    hardware_spi
-    framebuffer
-    misc
-)
-
-pico_add_extra_outputs(nhd_af_csxp_test)
+pico_add_extra_outputs(nhd_af_cxxx_test)
 
 
 # fd24_test

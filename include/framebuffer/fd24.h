@@ -11,7 +11,7 @@
 // touchscreen -- older manufacturing batch, ST7789V controller. (A newer
 // batch of this same product uses ILI9341V instead and would need its own
 // driver; see st7789_cmd.h.) Physical panel is portrait-native (240 cols
-// x 320 rows) silicon, so like NhdBsxvF/NhdAfCtxp/NhdAfCsxp, width/height
+// x 320 rows) silicon, so like NhdBsxvF/NhdAfCxxx, width/height
 // are fixed at compile time rather than taken as constructor arguments.
 //
 // Needs SPI mode 3 (CPOL=1, CPHA=1) - the caller is responsible for

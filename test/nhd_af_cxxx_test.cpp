@@ -1,5 +1,5 @@
 
-#include "framebuffer/nhd_af_ctxp.h"
+#include "framebuffer/nhd_af_cxxx.h"
 
 #include <cstdio>
 // pico
@@ -47,7 +47,7 @@ constexpr int led_gpio = 20;
 
 static constexpr int spi_baud_request = 15'000'000;
 
-// NhdAfCtxp's physical size (240x320 portrait) is fixed at compile time, not
+// NhdAfCxxx's physical size (240x320 portrait) is fixed at compile time, not
 // a constructor argument; fb_width/fb_height here are just the landscape
 // logical size used by fb_tests.h's layout math. Same physical size as
 // Ws24, so the same font picks apply.
@@ -82,12 +82,12 @@ int main()
     SysLed::off();
 
     printf("\n");
-    printf("nhd_af_ctxp_test\n");
+    printf("nhd_af_cxxx_test\n");
     printf("\n");
 
     TftSpi3If io(spi3_pio, spi3_mosi_gpio, spi3_clk_gpio, spi3_cs_gpio, spi_baud_request);
 
-    NhdAfCtxp fb(io, rst_gpio, led_gpio, work, work_bytes);
+    NhdAfCxxx fb(io, rst_gpio, led_gpio, work, work_bytes);
 
     int spi_baud_actual = fb.spi_freq();
     int spi_rate_max = spi_baud_actual / 8;

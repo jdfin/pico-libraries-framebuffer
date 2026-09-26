@@ -12,10 +12,10 @@
 // 320 rows) silicon, so unlike Ws35/Hy35/Ws24, width/height are fixed at
 // compile time rather than taken as constructor arguments.
 //
-// Confirmed against real hardware: needs SPI mode 3, and madctl() (see
-// tft.h) does not set the RGB/BGR bit -- setting it swaps red and blue on
-// this part. NhdAfCtxp/NhdAfCsxp are still on unverified, untested values;
-// don't assume they need the same fixes.
+// Confirmed against real hardware: needs SPI mode 3 (over 4-wire SPI - see
+// NhdAfCxxx for the 3-wire-only Newhaven parts, which need no such mode
+// selection), and madctl() (see tft.h) does not set the RGB/BGR bit --
+// setting it swaps red and blue on this part.
 //
 // SPI mode selection now lives on TftSpiIf, not here - the caller is
 // responsible for constructing its TftSpiIf with SPI_CPOL_1/SPI_CPHA_1.
