@@ -16,15 +16,21 @@ TftSpi4If::TftSpi4If(spi_inst_t *spi, int miso_pin, int mosi_pin, int clk_pin,
     _mosi_pin(mosi_pin),
     _clk_pin(clk_pin),
     _cs_pin(cs_pin),
+    _baud(baud),
     _cd_pin(cd_pin),
     _cpol(cpol),
     _cpha(cpha)
+{
+}
+
+
+void TftSpi4If::init()
 {
     assert(_spi != nullptr);
     assert(_miso_pin >= 0 && _mosi_pin >= 0 && _clk_pin >= 0);
     assert(_cd_pin >= 0);
 
-    _freq = spi_init(_spi, baud);
+    _freq = spi_init(_spi, _baud);
     gpio_set_function(_miso_pin, GPIO_FUNC_SPI);
     gpio_set_function(_mosi_pin, GPIO_FUNC_SPI);
     gpio_set_function(_clk_pin, GPIO_FUNC_SPI);

@@ -20,6 +20,8 @@ using namespace St7789Cmd;
 // identical init sequence and madctl() work for both.
 void NhdAfCxxx::init()
 {
+    Tft::init();
+
     // at least 10 usec required
     hw_reset(100);
 

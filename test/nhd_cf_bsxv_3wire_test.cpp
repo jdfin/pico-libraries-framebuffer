@@ -104,12 +104,14 @@ int main()
 
     NhdCfBsxv fb(io, rst_gpio, led_gpio, work, work_bytes);
 
+    // spi_freq() isn't valid until fb.init() has run - that's what actually
+    // calls down to TftSpi3If::init(), which computes it.
+    fb.init();
+
     int spi3_baud_actual = fb.spi_freq();
     int spi3_rate_max = spi3_baud_actual / 8;
     printf("spi3: requested %g Hz, got %d Hz (max %d bytes/sec)\n", //
            spi3_baud_request, spi3_baud_actual, spi3_rate_max);
-
-    fb.init();
 
     // Turning on the backlight here shows whatever happens to be in RAM
     // (previously displayed or random junk), so we fill the screen with

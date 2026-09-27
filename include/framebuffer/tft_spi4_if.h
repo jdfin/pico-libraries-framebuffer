@@ -23,6 +23,8 @@ public:
               int cs_pin, int baud, int cd_pin, //
               spi_cpol_t cpol = SPI_CPOL_0, spi_cpha_t cpha = SPI_CPHA_0);
 
+    virtual void init() override;
+
     virtual int freq() const override
     {
         return _freq;
@@ -57,6 +59,7 @@ private:
     int _freq;
 
     int _miso_pin, _mosi_pin, _clk_pin, _cs_pin;
+    int _baud;
     int _cd_pin;
 
     spi_cpol_t _cpol;

@@ -18,6 +18,16 @@ public:
 
     virtual ~TftIf() = default;
 
+    // Performs whatever hardware setup can't safely happen during static
+    // construction (e.g. clock_get_hz(), spi_init()/spi3_init() - things
+    // that need the runtime's own init to have already run). The
+    // constructor itself only stores parameters, so it's safe to construct
+    // a TftIf implementation as a static/global object; init() still must
+    // run after that, and before any other TftIf method - Tft's own
+    // constructor calls it, so this is automatic as long as the Tft (or
+    // board) object itself isn't also static.
+    virtual void init() = 0;
+
     // Actual achieved clock frequency. Requested vs. actual can differ -
     // both spi_init()'s baud divisor and a PIO clock divider have real
     // quantization.

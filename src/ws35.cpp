@@ -23,6 +23,8 @@ Ws35::Ws35(TftIf &io, int rst_pin, int bk_pin, int width, int height,
 
 void Ws35::init()
 {
+    Tft::init();
+
     // at least 10 usec required
     hw_reset(100);
 

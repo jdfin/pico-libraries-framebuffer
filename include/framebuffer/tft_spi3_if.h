@@ -30,6 +30,8 @@ public:
     // class must, and does so per-transaction (see the .cpp).
     TftSpi3If(PIO pio, int sda_pin, int clk_pin, int cs_pin, float baud);
 
+    virtual void init() override;
+
     virtual int freq() const override
     {
         return _freq;
@@ -54,8 +56,9 @@ public:
 private:
 
     PIO _pio;
+    int _sda_pin, _clk_pin, _cs_pin;
+    float _baud;
     uint _sm;
-    int _cs_pin;
     int _freq;
 
     static constexpr bool cs_assert = false;

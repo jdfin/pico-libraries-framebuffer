@@ -98,12 +98,14 @@ int main()
 
     Fd24 fb(io, fb_rst_gpio, fb_led_gpio, work, work_bytes);
 
+    // spi_freq() isn't valid until fb.init() has run - that's what actually
+    // calls down to TftSpi4If::init(), which computes it.
+    fb.init();
+
     int spi_baud_actual = fb.spi_freq();
     int spi_rate_max = spi_baud_actual / 8;
     printf("spi: requested %d Hz, got %d Hz (max %d bytes/sec)\n", //
            spi_baud_request, spi_baud_actual, spi_rate_max);
-
-    fb.init();
 
     // Turning on the backlight here shows whatever happens to be in RAM
     // (previously displayed or random junk), so we fill the screen with

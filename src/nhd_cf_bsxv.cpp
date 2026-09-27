@@ -20,6 +20,8 @@ using namespace St7789Cmd;
 // sequence applies here over SPI.
 void NhdCfBsxv::init()
 {
+    Tft::init();
+
     // at least 10 usec required
     hw_reset(100);
 

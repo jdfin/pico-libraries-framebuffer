@@ -24,6 +24,8 @@ Ws24::Ws24(TftIf &io, int rst_pin, int bk_pin, int width, int height,
 
 void Ws24::init()
 {
+    Tft::init();
+
     sleep_ms(150);
     hw_reset(20);
     sleep_ms(150);

@@ -25,6 +25,8 @@ using namespace St7789Cmd;
 // safer than an edit that can't be verified.
 void Fd24::init()
 {
+    Tft::init();
+
     // at least 10 usec required
     hw_reset(100);
 

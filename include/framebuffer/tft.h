@@ -27,12 +27,20 @@ public:
     // 'io' provides all panel I/O (see framebuffer/tft_if.h) and must
     // outlive this Tft. 'bk_pin', if >= 0, is driven with PWM for variable
     // brightness() - see the .cpp for the slice/wrap/clkdiv setup.
+    //
+    // The constructor only stores parameters - it's safe to construct a
+    // Tft (or board subclass) as a static/global object. All the actual
+    // hardware setup (io.init(), rst/backlight GPIO and PWM, DMA channel
+    // claim) is deferred to init() below, same reasoning as TftIf::init().
     Tft(TftIf &io, int rst_pin, int bk_pin, int width, int height,
         void *work = nullptr, int work_bytes = 0);
 
     virtual ~Tft();
 
-    // reset and initialize
+    // Resets and initializes the panel. Every override must call Tft::init()
+    // first (it has a body despite being pure virtual - see the .cpp) to run
+    // the deferred hardware setup mentioned above, before hw_reset() and its
+    // own vendor register sequence.
     virtual void init() = 0;
 
     void hw_reset(int pulse_us);

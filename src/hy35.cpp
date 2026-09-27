@@ -23,6 +23,8 @@ Hy35::Hy35(TftIf &io, int rst_pin, int bk_pin, int width, int height,
 
 void Hy35::init()
 {
+    Tft::init();
+
     // at least 10 usec required
     hw_reset(100);
 

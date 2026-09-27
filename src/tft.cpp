@@ -56,6 +56,27 @@ Tft::Tft(TftIf &io, int rst_pin, int bk_pin, int width, int height, //
     _op_next(0),
     _op_free(0)
 {
+}
+
+
+Tft::~Tft()
+{
+    // probably much to do
+}
+
+
+// Pure virtual, but with a body: every subclass override must call
+// Tft::init() first (see tft.h). This is where everything deferred from
+// the constructor happens - _io.init(), rst/backlight GPIO and PWM setup,
+// and DMA channel claim - none of which is safe during static construction
+// (clock_get_hz() among others), so it can't live in the constructor if a
+// Tft (or board) is ever going to be a static/global object.
+void Tft::init()
+{
+    // Deferred from the TftIf implementation's own constructor - see
+    // TftIf::init() - so this must run before anything else touches _io.
+    _io.init();
+
     assert(_rst_pin >= 0);
 
     //DbgGpio::init(28);
@@ -86,12 +107,6 @@ Tft::Tft(TftIf &io, int rst_pin, int bk_pin, int width, int height, //
     channel_config_set_write_increment(&_dma_cfg, false); // write to transport
     dmax_irqn_set_channel_handler(0, _dma_ch, dma_raw_handler, (intptr_t)this);
     dmax_irqn_set_channel_enabled(0, _dma_ch, true);
-}
-
-
-Tft::~Tft()
-{
-    // probably much to do
 }
 
 

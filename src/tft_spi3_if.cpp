@@ -2,6 +2,7 @@
 #include "framebuffer/tft_spi3_if.h"
 
 #include "spi3.pio.h"
+#include <cassert>
 // pico
 #include "hardware/clocks.h"
 #include "hardware/gpio.h"
@@ -9,11 +10,21 @@
 
 TftSpi3If::TftSpi3If(PIO pio, int sda_pin, int clk_pin, int cs_pin, float baud) :
     _pio(pio),
-    _cs_pin(cs_pin)
+    _sda_pin(sda_pin),
+    _clk_pin(clk_pin),
+    _cs_pin(cs_pin),
+    _baud(baud),
+    _sm(0),
+    _freq(0)
 {
-    assert(sda_pin >= 0 && clk_pin >= 0 && cs_pin >= 0);
+}
 
-    _sm = spi3_init(_pio, sda_pin, clk_pin, baud);
+
+void TftSpi3If::init()
+{
+    assert(_sda_pin >= 0 && _clk_pin >= 0 && _cs_pin >= 0);
+
+    _sm = spi3_init(_pio, _sda_pin, _clk_pin, _baud);
 
     // spi3_init() doesn't report back the actual achieved clock (PIO clock
     // dividers are 16.8 fixed-point, so requested vs actual can differ, the
