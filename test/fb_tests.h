@@ -25,6 +25,7 @@
 
 #include <cassert>
 #include <cstdio>
+#include <cstring>
 // pico
 #include "pico/rand.h"
 #include "pico/stdio.h"
@@ -123,12 +124,35 @@ static struct {
 static const int num_tests = sizeof(tests) / sizeof(tests[0]);
 
 
+// Test menu is printed in this many columns, filled top-to-bottom then
+// left-to-right (so test numbers increase going down a column, then
+// continue at the top of the next one). Every column holds the same
+// number of entries except the last, which holds however many are left
+// over.
+static constexpr int help_cols = 4;
+
 static void help()
 {
     printf("\n");
     printf("Usage: enter test number (0..%d)\n", num_tests - 1);
-    for (int i = 0; i < num_tests; i++)
-        printf("%2d: %s\n", i, tests[i].name);
+
+    const int rows = (num_tests + help_cols - 1) / help_cols;
+
+    int name_wid = 0;
+    for (int i = 0; i < num_tests; i++) {
+        int len = (int)strlen(tests[i].name);
+        if (len > name_wid)
+            name_wid = len;
+    }
+
+    for (int r = 0; r < rows; r++) {
+        for (int c = 0; c < help_cols; c++) {
+            int i = c * rows + r;
+            if (i < num_tests)
+                printf("%2d: %-*s  ", i, name_wid, tests[i].name);
+        }
+        printf("\n");
+    }
     printf("\n");
 }
 
