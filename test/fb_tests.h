@@ -44,6 +44,11 @@
 
 // clang-format off
 static void rotations(Framebuffer &fb);
+static void backlight_0(Framebuffer &fb);
+static void backlight_25(Framebuffer &fb);
+static void backlight_50(Framebuffer &fb);
+static void backlight_75(Framebuffer &fb);
+static void backlight_100(Framebuffer &fb);
 static void corner_pixels(Framebuffer &fb);
 static void corner_squares(Framebuffer &fb);
 static void line_1(Framebuffer &fb);
@@ -80,6 +85,11 @@ static struct {
     void (*func)(Framebuffer &);
 } tests[] = {
     {"rotations", rotations},
+    {"backlight_0", backlight_0},
+    {"backlight_25", backlight_25},
+    {"backlight_50", backlight_50},
+    {"backlight_75", backlight_75},
+    {"backlight_100", backlight_100},
     {"corner_pixels", corner_pixels},
     {"corner_squares", corner_squares},
     {"line_1", line_1},
@@ -139,6 +149,10 @@ static void reinit_screen(Framebuffer &fb)
 static void fb_tests_run(Framebuffer &fb)
 {
     Argv argv(1); // verbosity == 1 means echo
+
+    // Default backlight for the test session; "backlight_NN" tests change
+    // it from here, and it sticks at whatever was last set.
+    fb.brightness(50);
 
     help();
     printf("> ");
@@ -205,6 +219,41 @@ static void rotations(Framebuffer &fb)
     fb.set_rotation(Framebuffer::Rotation::landscape2);
     mark_origin(fb, "landscape2 (white)", Color::white());
     sleep_ms(delay_ms);
+}
+
+
+static void backlight_0(Framebuffer &fb)
+{
+    printf("Backlight: 0%%\n");
+    fb.brightness(0);
+}
+
+
+static void backlight_25(Framebuffer &fb)
+{
+    printf("Backlight: 25%%\n");
+    fb.brightness(25);
+}
+
+
+static void backlight_50(Framebuffer &fb)
+{
+    printf("Backlight: 50%%\n");
+    fb.brightness(50);
+}
+
+
+static void backlight_75(Framebuffer &fb)
+{
+    printf("Backlight: 75%%\n");
+    fb.brightness(75);
+}
+
+
+static void backlight_100(Framebuffer &fb)
+{
+    printf("Backlight: 100%%\n");
+    fb.brightness(100);
 }
 
 

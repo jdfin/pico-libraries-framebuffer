@@ -25,7 +25,8 @@ class Tft : public Framebuffer
 public:
 
     // 'io' provides all panel I/O (see framebuffer/tft_if.h) and must
-    // outlive this Tft.
+    // outlive this Tft. 'bk_pin', if >= 0, is driven with PWM for variable
+    // brightness() - see the .cpp for the slice/wrap/clkdiv setup.
     Tft(TftIf &io, int rst_pin, int bk_pin, int width, int height,
         void *work = nullptr, int work_bytes = 0);
 
@@ -36,8 +37,7 @@ public:
 
     void hw_reset(int pulse_us);
 
-    // brightness_pct: 0..100
-    // (For now, zero turns it off, nonzero turns it on)
+    // brightness_pct: 0..100, PWM'd on bk_pin (see constructor)
     virtual void brightness(int brightness) override;
 
     int spi_freq() const

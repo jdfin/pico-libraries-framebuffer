@@ -23,6 +23,7 @@ target_link_libraries(framebuffer INTERFACE
     hardware_dma
     hardware_spi
     hardware_pio
+    hardware_pwm
     misc
 )
 

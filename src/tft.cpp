@@ -5,8 +5,10 @@
 #include <cstdlib>
 #include <utility>
 // pico
+#include "hardware/clocks.h"
 #include "hardware/dma.h"
 #include "hardware/gpio.h"
+#include "hardware/pwm.h"
 #include "hardware/sync.h"
 #include "pico/stdlib.h"
 // framebuffer
@@ -21,6 +23,20 @@
 #include "misc/dbg_gpio.h"
 #include "misc/dma_extra.h"
 #include "misc/util.h"
+
+
+// Backlight PWM: 8-bit duty resolution (plenty for a backlight) at a fixed
+// frequency, well above any visible flicker or camera-shutter banding, and
+// with no inductor in the LED backlight circuit to make a switching whine
+// worth avoiding. clkdiv is computed from the actual sys clock at runtime
+// (clock_get_hz(), not a hardcoded divisor) so this comes out right on both
+// RP2040 and RP235x regardless of their clk_sys defaults.
+//
+// pwm_init() reconfigures bk_pin's whole slice (wrap/clkdiv are shared by
+// both channels of a slice) - fine today since no test also drives PWM on
+// bk_pin's slice-mate pin, but would need coordinating if one ever did.
+static constexpr uint16_t bk_pwm_wrap = 255;
+static constexpr float bk_pwm_freq_hz = 5000.0f;
 
 
 Tft::Tft(TftIf &io, int rst_pin, int bk_pin, int width, int height, //
@@ -49,9 +65,14 @@ Tft::Tft(TftIf &io, int rst_pin, int bk_pin, int width, int height, //
     gpio_set_dir(_rst_pin, gpio_out);
 
     if (_bk_pin >= 0) {
-        gpio_init(_bk_pin);
+        gpio_set_function(_bk_pin, GPIO_FUNC_PWM);
+        pwm_config cfg = pwm_get_default_config();
+        float clkdiv = (float)clock_get_hz(clk_sys) /
+                       (bk_pwm_freq_hz * (bk_pwm_wrap + 1));
+        pwm_config_set_clkdiv(&cfg, clkdiv);
+        pwm_config_set_wrap(&cfg, bk_pwm_wrap);
+        pwm_init(pwm_gpio_to_slice_num(_bk_pin), &cfg, true);
         brightness(0); // off
-        gpio_set_dir(_bk_pin, gpio_out);
     } else {
         // no control, assume it's max brightness (e.g. pulled up)
         brightness(100);
@@ -100,8 +121,7 @@ void Tft::hw_reset(int pulse_us)
 }
 
 
-// Allow for pwm backlight some day: 'brightness_pct' is 0%-100% brightness.
-// For now, zero turns it off, nonzero turns it on.
+// 'brightness_pct' is 0%-100% brightness, PWM'd on bk_pin (see constructor).
 void Tft::brightness(int brightness_pct)
 {
     if (brightness_pct < 0)
@@ -111,8 +131,14 @@ void Tft::brightness(int brightness_pct)
 
     _brightness_pct = brightness_pct;
 
-    if (_bk_pin >= 0)
-        gpio_put(_bk_pin, brightness_pct > 0);
+    if (_bk_pin >= 0) {
+        // At brightness_pct == 100, level comes out one past bk_pwm_wrap,
+        // which the PWM hardware treats as "always high" - full-on with no
+        // switching, not a 255/256 duty cycle.
+        uint16_t level =
+            (uint16_t)((uint32_t)brightness_pct * (bk_pwm_wrap + 1) / 100);
+        pwm_set_gpio_level(_bk_pin, level);
+    }
 }
 
 

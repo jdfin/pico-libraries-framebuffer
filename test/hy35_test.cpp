@@ -99,13 +99,11 @@ int main()
     fb.init();
 
     // Turning on the backlight here shows whatever happens to be in RAM
-    // (previously displayed or random junk), so we turn it on after filling
-    // the screen with something.
+    // (previously displayed or random junk), so we fill the screen with
+    // something first; fb_tests_run() turns the backlight on (to its own
+    // default) once that's done.
 
     reinit_screen(fb); // set rotation, fill background
-
-    // Now turn on backlight
-    fb.brightness(100);
 
     fb_tests_run(fb);
     return 0;
